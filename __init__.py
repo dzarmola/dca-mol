@@ -1887,6 +1887,7 @@ class dcaMOL:
                 heatmap = self.aplot.pcolorfast(data2, cmap=cmapa,norm=norm, vmin=0.)#, vmax=vmax)
             #self.wait_window.quit()
             TPrate = (len(data2[np.triu(data2)==1.]),len(data2[np.triu(data2)==0.1])) #TP,FP  ## TODO co zrobic z interchain?
+            print "TPRATE", TPrate,sum(TPrate)
             self.TPrate.set("%5.2f%%" % (TPrate[0]*100./sum(TPrate)))
             self.TP_frame.grid(column=1, row=0,padx=10)
         else:
@@ -1922,11 +1923,10 @@ class dcaMOL:
                 all=0
                 for x in xrange(self.data.shape[0]):
                     for y in xrange(x+1,self.data.shape[0]):
-                        TPrate+=(self.data[x][y]>self.slider_min.get() and self.data[y][x]>0)
-                        all+= (type(self.data[x][y]) != np.ma.core.MaskedConstant)
-                #TPrate += len(self.data[np.triu(self.data)>self.slider_min.get()])
-                #print len(self.data[np.triu(self.data)>self.slider_min.get()])
-                #print TPrate
+                        #print x,y,self.data[x][y]
+                        TPrate+=(type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get() and self.data[y][x]>0)
+                        all+= (type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get())
+                print "TPRATE",TPrate,all
                 self.TPrate.set("%5.2f%%" % (TPrate*100./all))
                                 #(TPrate*100./len(self.data[np.triu(self.data)>self.slider_min.get()])))
                 self.TP_frame.grid(column=1, row=0, padx=10)

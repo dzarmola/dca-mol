@@ -1307,14 +1307,16 @@ class Structure:
                         ssy = y
                         px = self.translations.structseq2pdb[x]# residues[x].pdbid
                         py = self.translations.structseq2pdb[y]# residues[y].pdbid
-                        if not px or not py or px is None or py is None:
+                        if px is None or py is None:
                             continue
                     else:
                         ssx = self.translations.singleplot_native(x) #self.sequence_residues[x]
                         ssy = self.translations.singleplot_native(y) #self.sequence_residues[y]
                         py = self.translations.singleplot_native(y)
                         px = self.translations.singleplot_native(x)
-                        if not px or not py or px is None or py is None:
+                        #if not px or not py or px is None or py is None:
+                        if px is None or py is None:
+                            #if x==0 : print data[x][y], x, y, ssx, ssy, px, py
                             continue
                     sc = 0.1
                     if (any and 0. < self.any_maps[Structure.mode][ssx][ssy] < distance_intra) or (not any and 0. < self.maps[Structure.mode][ssx][ssy] < distance_intra):
@@ -1327,6 +1329,8 @@ class Structure:
                             #                        print "will rms",distance_intra,px,py,ssx,ssy
                             sc += 2.
                     out[x][y] = sc
+                    #if x==0:
+                    #    print out[x][y],x,y,ssx,ssy,px,py
         for x in xrange(size):
             for y in xrange(0, x):
                 #if y <= x:
