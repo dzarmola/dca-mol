@@ -1570,7 +1570,10 @@ class dcaMOL:
         self.redraw_bonds()
 
     def getTopXValues(self):
-        X = int(self.top_values_cnt.get())
+        try:
+            X = int(self.top_values_cnt.get())
+        except:
+            tkMessageBox("There is something wrong with the entered value \n Error code: (PEBKAC)")
         if type(self.data) == np.ma.MaskedArray:
             cutoff = np.ma.sort(np.triu(self.data), axis=None, fill_value=0.)[-X]
         else:
@@ -1580,7 +1583,10 @@ class dcaMOL:
         self.slider_min.set(cutoff)
 
     def getTopPCValues(self):
-        PC = self.top_values_pc.get()
+        try:
+            PC = int(self.top_values_pc.get())
+        except:
+            tkMessageBox("There is something wrong with the entered value \n Error code: (PEBKAC)")
         X = int(((self.data.shape[0] * self.data.shape[1] - self.data.shape[1]) / 2) * (PC / 100.))
         self.top_values_cnt.set(int(X))
         if type(self.data) == np.ma.MaskedArray:
@@ -1784,7 +1790,7 @@ class dcaMOL:
         self.clear_pymol_bonds()
         #        aplot = f.add_subplot(111)
         if "Single" in self.map_structure_mode.get():
-            self.current_structure_var = self.map_structure_mode.get().split("t: ")[1]
+            self.current_structure_var = self.map_structure_mode.get().split("ture:\n ")[1]
             self.current_structure_obj_var = [x for x in self.STRUCTURES if x.objId in self.current_structure_var][0]
             self.fileMenu.entryconfig(5,state=Tk.NORMAL)
             self.fileMenu.entryconfig(6,state=Tk.NORMAL)
@@ -2309,7 +2315,7 @@ class dcaMOL:
 
         _num = 1
         for structure in self.STRUCTURES:
-            self.OPCJE.append("Single struct: " + structure.objId)
+            self.OPCJE.append("Single structure:\n " + structure.objId)
             structure.temp_path = self.path
             self.wait("Calculating native contacts map for {}".format(structure.objId))
             structure.makeMultiStateContactFile(progress=self._wait_in_progress)
@@ -2452,7 +2458,8 @@ class dcaMOL:
         self.cid = self.canvas.mpl_connect('button_press_event', self.onclick_plot)
         self.cid2 = self.canvas.mpl_connect('button_release_event', self.onclick2_plot)
         self.cid3 = self.canvas.mpl_connect('motion_notify_event', self.track_cursor)
-        
+        if len(self.OPCJE)>1:
+            self.map_structure_mode.set(self.OPCJE[1])
 
         self.root.deiconify()
         sw = self.mode_frame.winfo_width()
@@ -2461,7 +2468,8 @@ class dcaMOL:
         hei = self.root.winfo_height()
         wid = self.root.winfo_width()
         #print hei,wid
-        self.root.minsize(1064,960)
+
+        self.root.minsize(851,768)
         self.root.aspect(620, 530, 620, 530)
 
 #        self.root.bind('<Configure>', self.resize)
