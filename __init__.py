@@ -1452,10 +1452,12 @@ class dcaMOL:
             self.cmapa = cmapa
             self.norm = norm
             #self.recolor_by_trueness_var.set(False)
+            self.recalcTPrate()
             self.canvas.draw()
         mpl.colorbar.ColorbarBase(self.cmap_ax, cmap=self.cmapa,
                                   norm=self.norm,
                                   orientation='vertical')
+        #self.
         self.cmap_canvas.draw()
         self.redraw_bonds()
 
@@ -1836,6 +1838,28 @@ class dcaMOL:
                                   orientation='vertical')
         self.cmap_canvas.draw()
 
+
+    def recalcTPrate(self):
+        if (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):
+            TPrate = (len(self.data2[np.triu(self.data2) == 1.]),
+                      len(self.data2[np.triu(self.data2) == 0.1]))  # TP,FP  ## TODO co zrobic z interchain?
+            print "TPRATE", TPrate, sum(TPrate)
+            self.TPrate.set("%5.2f%%" % (TPrate[0] * 100. / sum(TPrate)))
+            self.TP_frame.grid(column=1, row=0, padx=10)
+        else:
+            if self.comp_mode.get():
+                TPrate=0
+                all=0
+                for x in xrange(self.data.shape[0]):
+                    for y in xrange(x+1,self.data.shape[0]):
+                        #print x,y,self.data[x][y]
+                        TPrate+=(type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get() and self.data[y][x]>0)
+                        all+= (type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get())
+                print "TPRATE",TPrate,all
+                self.TPrate.set("%5.2f%%" % (TPrate*100./all))
+                                #(TPrate*100./len(self.data[np.triu(self.data)>self.slider_min.get()])))
+                self.TP_frame.grid(column=1, row=0, padx=10)
+
     def makeSSplot(self,*args,**kwargs):
         mesh =False
         if 'mesh' in kwargs and kwargs['mesh']:
@@ -1886,10 +1910,7 @@ class dcaMOL:
             else:
                 heatmap = self.aplot.pcolorfast(data2, cmap=cmapa,norm=norm, vmin=0.)#, vmax=vmax)
             #self.wait_window.quit()
-            TPrate = (len(data2[np.triu(data2)==1.]),len(data2[np.triu(data2)==0.1])) #TP,FP  ## TODO co zrobic z interchain?
-            print "TPRATE", TPrate,sum(TPrate)
-            self.TPrate.set("%5.2f%%" % (TPrate[0]*100./sum(TPrate)))
-            self.TP_frame.grid(column=1, row=0,padx=10)
+            self.recalcTPrate()
         else:
             self.data = my_struct.makeSSarray(self.DATA_BACKUP, comparison=self.comp_mode.get(), distance=self.comp_distance.get(),
                                          restricted=restricted, state=self.current_state_var.get(), nonwc=self.rna_nonwc_pairs.get())
@@ -1918,18 +1939,7 @@ class dcaMOL:
                                       norm=self.norm,
                                       orientation='vertical')
             self.cmap_canvas.draw()
-            if self.comp_mode.get():
-                TPrate=0
-                all=0
-                for x in xrange(self.data.shape[0]):
-                    for y in xrange(x+1,self.data.shape[0]):
-                        #print x,y,self.data[x][y]
-                        TPrate+=(type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get() and self.data[y][x]>0)
-                        all+= (type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get())
-                print "TPRATE",TPrate,all
-                self.TPrate.set("%5.2f%%" % (TPrate*100./all))
-                                #(TPrate*100./len(self.data[np.triu(self.data)>self.slider_min.get()])))
-                self.TP_frame.grid(column=1, row=0, padx=10)
+            self.recalcTPrate()
             self.data2 = None
         self.cmapa = cmapa
         self.norm = norm
