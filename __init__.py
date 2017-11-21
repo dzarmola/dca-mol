@@ -2216,6 +2216,10 @@ class dcaMOL:
         Y = [max(0, min([self.LAST_CLICKED_POS[1], final_pos[1]])), min(max([self.LAST_CLICKED_POS[1], final_pos[1]]), size)]
         self.SELECTED_REGIONS.append((X, Y, final_pos[2]))
         s = []
+        if final_pos[2]=="L" or any(len(x.chain_list)>1 for x in s):
+            self.draw_selected_patch((X, Y, final_pos[2]))
+
+        self.canvas.draw()
         if "Single" in self.map_structure_mode.get():
             #            pass
             s = [self.current_structure_obj_var]
@@ -2226,10 +2230,7 @@ class dcaMOL:
             s=self.STRUCTURES
             self.bonds_in_patches(X, Y,  s, mode=(final_pos[2] == "R"))
 
-        if final_pos[2]=="L" or any(len(x.chain_list)>1 for x in s):
-            self.draw_selected_patch((X, Y, final_pos[2]))
 
-        self.canvas.draw()
 
         return
 
