@@ -463,6 +463,20 @@ class Translation:
             return self.structseq2unal_fasta[self.pdb2structseq[resid]]
         except TypeError:
             return None
+
+    """def unal_fasta2resid(self, alnid):
+        try:
+            return self.structseq2pdb[self.unal_fasta2structseq[alnid]]
+        except TypeError:
+            return None
+        except KeyError:
+            return None
+        except IndexError:
+            print alnid
+            print self.unal_fasta2structseq,len(self.unal_fasta2structseq)
+            print self.unal_fasta2structseq[alnid]
+            print self.structseq2pdb"""
+
     def struct2pdb(self,sid):
         try:
             #print sid, self.structseq2pdb
@@ -1465,6 +1479,11 @@ class Structure:
         plt.figure(figure.number)
         assert plt.gcf() == figure
 
+#        print self.residues
+#        print [vars(i) for i in self.residues]
+#        print "###"
+#        print [vars(i) for i in self.residues if i.ss == '.']
+
         if restricted:
             beta = [idx+0.5 for idx, s in enumerate(self.residues) if s.ss == "S"]
             alpha = [idx+0.5 for idx, s in enumerate(self.residues) if s.ss == "H"]
@@ -1472,8 +1491,9 @@ class Structure:
         else:
             beta = [x+0.5 for x in [self.translations.resid2unal_fasta(s.pdbid) for s in self.residues if s.ss == "S"]
                     if x is not None]
-            gap = [x+0.5 for x in [self.translations.resid2unal_fasta(s.pdbid) for s in self.residues if s.ss == "."] if
-                   x is not None]
+            gap = [x+0.5 for x,e in enumerate(self.translations.unal_fasta2structseq) if e is None]
+#                   [self.translations.resid2unal_fasta(s.pdbid) for s in self.residues if s.ss == "."] if
+#                   x is not None]
             alpha = [x+0.5 for x in [self.translations.resid2unal_fasta(s.pdbid) for s in self.residues if s.ss == "H"]
                      if x is not None]
         ##BELOW XAXIS ####
