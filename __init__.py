@@ -1305,7 +1305,10 @@ class dcaMOL:
             self.sequence_selection_window.destroy()
 
         for index, id in enumerate(selected):
-            labels.append(Tk.Label(leftCol, text=id))
+            #labels.append(Tk.Label(leftCol, text=id))
+            labels.append(Tk.Entry(leftCol, ))
+            labels[-1].insert(0,id)
+            labels[-1].config(state="readonly")
             labels[-1].pack(side=Tk.TOP)
             entries_vars.append(Tk.StringVar())
             entries.append(Tk.Entry(middleCol0, width=6, textvariable=entries_vars[index]))
