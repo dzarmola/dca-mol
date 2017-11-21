@@ -530,7 +530,7 @@ class dcaMOL:
         cm_frame = Tk.Frame(self.left_bar)
         cm_frame.grid(column=0,row=1)
 
-        Tk.Label(cm_frame, text="Colormap:").grid(column=0,row=0,columnspan=2,sticky='W')
+        Tk.Label(cm_frame, text="Colormap:").grid(column=0,row=0,columnspan=1,sticky='W')
         self.colormap = Tk.StringVar()
         self.colormap.trace("w", self.colormap_change)
         self.colormap.set(self.default_cmap)
@@ -542,7 +542,7 @@ class dcaMOL:
         v.grid(column=0, row=2)
 
         gradient_frame = Tk.Frame(cm_frame)
-        gradient_frame.grid(column=1,row=1,rowspan=3)
+        gradient_frame.grid(column=1,row=0,rowspan=4)
         self.cmap_fig = plt.figure(figsize=(0.25, 1.5), dpi=100)
         self.cmap_fig.subplots_adjust(top=1., bottom=0., left=0., right=1., hspace=0, wspace=0)
         self.cmap_ax = self.cmap_fig.add_subplot(111)
