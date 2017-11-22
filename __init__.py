@@ -446,7 +446,7 @@ class dcaMOL:
         self.comp_moddist_frame = Tk.Frame(self.SSframe)
         Tk.Label(self.comp_moddist_frame, text="Contact map mode").grid(column=0, row=0)
         self.comp_atom_mode = Tk.StringVar()
-        self.comp_atom_mode.set("CA")
+        self.comp_atom_mode.set(dm.Structure.available_modes[0])
         self.menu_atom_mode = None
         self.menu_atom_mode_rna = Tk.OptionMenu(self.comp_moddist_frame, self.comp_atom_mode, *dm.Structure.available_modes_rna)
         self.menu_atom_mode_prot = Tk.OptionMenu(self.comp_moddist_frame, self.comp_atom_mode, *dm.Structure.available_modes)
@@ -746,7 +746,7 @@ class dcaMOL:
 
         self.wait("Writing out contacts below {}A map for {}".format(self.comp_distance.get(),self.current_structure_var))
         with open(_file,"w",1) as outfile:
-            with open(self.path+"/_temp_" + self.current_structure_var + "_" + dm.Structure.mode.strip("'") + ".map") as map_file:
+            with open(self.path+"/_temp_" + self.current_structure_var + "_" + dm.Structure.flat_modes[dm.Structure.mode] + ".map") as map_file:
                 for state,line in enumerate(map_file):
                     self._wait_in_progress("State: {}/{}".format(state+1,self.current_structure_obj_var.num_states))
                     #state-=_f+1
@@ -766,7 +766,7 @@ class dcaMOL:
         outfile = tkFileDialog.asksaveasfilename(defaultextension=".txt",filetypes=ftypes)
         self.wait("Writing out all contacts map for {}".format(self.current_structure_var))
         with open(outfile, "w", 1) as outfile:
-            with open(self.path+"/_temp_" + self.current_structure_var + "_" + dm.Structure.mode.strip("'") + ".map") as map_file:
+            with open(self.path+"/_temp_" + self.current_structure_var + "_" + dm.Structure.flat_modes[dm.Structure.mode] + ".map") as map_file:
                 for state,line in enumerate(map_file):
                     self._wait_in_progress(
                         "State: {}/{}".format(state+1, self.current_structure_obj_var.num_states))
@@ -866,7 +866,7 @@ class dcaMOL:
         for x in xrange(size):
             for y in xrange(x):
                 d = float(line.pop())
-                if dm.Structure.mode == "canonical":
+                if "anonical" in dm.Structure.mode:
                     if d<5.:
                         yield (structrans.struct2pdb(x), structrans.struct2pdb(y), "WC" if d<2. else "nonWC")
                 else:
@@ -1057,7 +1057,7 @@ class dcaMOL:
         self.mark_on_similar.set(0)
         self.mark_on_similar_just_within.set(0)
         self.map_structure_mode.set(self.OPCJE[0])
-        self.comp_atom_mode.set("CA")
+        self.comp_atom_mode.set(dm.Structure.available_modes[0])
         self.menu_atom_mode = None
         self.rna_nonwc_pairs.set(0)
         self.comp_distance.set(8.)
@@ -1276,7 +1276,10 @@ class dcaMOL:
         def add_more_structs(vars):
             idx, id = vars
             keep_gay_utopia_vars[idx].set(0)
-            labels.append(Tk.Label(leftCol, text=id))
+            #labels.append(Tk.Label(leftCol, text=id))
+            labels.append(Tk.Entry(leftCol, relief=Tk.FLAT))
+            labels[-1].insert(0, id)
+            labels[-1].config(state="readonly")
             labels[-1].pack(side=Tk.TOP)
             entries_vars.append(Tk.StringVar())
             entries.append(Tk.Entry(middleCol0, width=6, textvariable=entries_vars[-1]))
@@ -1366,7 +1369,7 @@ class dcaMOL:
 
         for index, id in enumerate(selected):
             #labels.append(Tk.Label(leftCol, text=id))
-            labels.append(Tk.Entry(leftCol, ))
+            labels.append(Tk.Entry(leftCol, relief=Tk.FLAT))
             labels[-1].insert(0,id)
             labels[-1].config(state="readonly")
             labels[-1].pack(side=Tk.TOP)
@@ -1702,7 +1705,7 @@ class dcaMOL:
             self.redraw_bonds()
         self.makeSSplot()
     def menu_atom_mode_change(self,*args):
-        dm.Structure.mode = self.comp_atom_mode.get().split()[0]
+        dm.Structure.mode = self.comp_atom_mode.get()
         self.clear_pymol_bonds()
         for structure in self.STRUCTURES:
             structure.makeContactMap(self.current_state_var.get(), mchain=False)
@@ -1710,7 +1713,7 @@ class dcaMOL:
                 structure.makeContactMap(self.current_state_var.get(), mchain=True)
 
         if dm.Structure.isRNA:
-            if self.comp_atom_mode.get().split()[0] == "canonical":
+            if "anonical" in self.comp_atom_mode.get():
                 self.rna_nonwc_pairs_check.grid(column=0, row=2)
                 self.dist_frame.grid_forget()
             else:
@@ -1853,7 +1856,7 @@ class dcaMOL:
         self.clear_pymol_bonds()
         #        aplot = f.add_subplot(111)
         if "Single" in self.map_structure_mode.get():
-            self.current_structure_var = self.map_structure_mode.get().split("ture:\n ")[1]
+            self.current_structure_var = self.map_structure_mode.get().split("ture: ")[1]
             self.current_structure_obj_var = [x for x in self.STRUCTURES if x.objId in self.current_structure_var][0]
             self.fileMenu.entryconfig(5,state=Tk.NORMAL)
             self.fileMenu.entryconfig(6,state=Tk.NORMAL)
@@ -1926,8 +1929,8 @@ class dcaMOL:
                 for x in xrange(self.data.shape[0]):
                     for y in xrange(x+1,self.data.shape[0]):
                         #print x,y,self.data[x][y]
-                        TPrate+=(type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get() and self.data[y][x]>0)
-                        all+= (type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get())
+                        TPrate+=(type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get() and type(self.data[y][x]) != np.ma.core.MaskedConstant and self.data[y][x]>0)
+                        all+= (type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get() and type(self.data[y][x]) != np.ma.core.MaskedConstant)
                 print "TPRATE",TPrate,all
                 self.TPrate.set("%5.2f%%" % (TPrate*100./all))
                                 #(TPrate*100./len(self.data[np.triu(self.data)>self.slider_min.get()])))
@@ -2383,7 +2386,7 @@ class dcaMOL:
 
         _num = 1
         for structure in self.STRUCTURES:
-            self.OPCJE.append("Single structure:\n " + structure.objId)
+            self.OPCJE.append("Single structure: " + structure.objId)
             structure.temp_path = self.path
             self.wait("Calculating native contacts map for {}".format(structure.objId))
             structure.makeMultiStateContactFile(progress=self._wait_in_progress)

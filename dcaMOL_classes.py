@@ -27,16 +27,6 @@ nw = nw_prot
 WC_PAIRS = [ "GC","CG","AU","UA","AT","TA"]
 OTHER_PAIRS = ["GU","UG"]
 
-
-def run_background_maps_old(STRUCTURES):
-    print "Starting background map"
-    for m in Structure.available_modes[:1]:## TODO no heavy atoms mode
-        print "Starting with mode",m
-        for s in STRUCTURES:
-            print "Starting with structure ",s
-            print "___"
-            s.makeICContactMap(mode = m)
-
 def getChainMap(objId, my_chains):
     my_chains = list(my_chains)
     refs = {c: ["".join(cmd.get_fastastr('({} and c. {})'.format(objId, c)).split()[1:])] for c in my_chains}
@@ -494,12 +484,13 @@ def verify_nw():
         nw = nw_rna
 
 class Structure:
-    available_modes = ["CA","CB","heavy"]
-    mode = "CA"
+    available_modes = [u"C\u03B1",u"C\u03B2","All heavy atoms"]
+    flat_modes = {u"C\u03B1":"CA",u"C\u03B2":"CB","All heavy atoms":'heavy',"C1'":"C1","C4'":"C4","O5'":"O5","All heavy atoms":"heavy","Canonical base pairing":"canonical" }
+    mode = available_modes[0]
     version = 1.7
     isRNA = False #must be boolean
     mode_rna = "C1'"
-    available_modes_rna = ["C1'","C4'","O5'","heavy","canonical"] #TODO N1/N9 purine/pyrimidine?
+    available_modes_rna = ["C1'","C4'","O5'","All heavy atoms","Canonical base pairing"] #TODO N1/N9 purine/pyrimidine?
 
     def __init__(self, objId, chain, seqName, sequence,keep_others=False,further_structs=False,splits=None):
         verify_nw()
@@ -721,18 +712,18 @@ class Structure:
     def makeContactMap(self, state, mchain=False):
         self.current_state = state
         name = self.temp_path + "/_temp_" + self.objId + "{}_{}.map"
-        with open(name.format("_multichain" if mchain else "", Structure.mode.strip("'"))) as mapfile:
+        with open(name.format("_multichain" if mchain else "", Structure.flat_modes[Structure.mode])) as mapfile:
             for x, line in enumerate(mapfile):
                 #print "Reading in contact map from file: ","state",state,"multichain :",mchain
                 if x+1 == state:
                 #    print "Found state",x+1
                     if mchain:
                 #        print "Reading in multichain from ",name.format("_multichain" if mchain else "", Structure.mode)
-                        self.interchain_maps[Structure.mode] = self.read_in_map_oneliner_arr(line)
+                        self.interchain_maps[Structure.flat_modes[Structure.mode]] = self.read_in_map_oneliner_arr(line)
                 #        print "done", self.interchain_maps.keys()
 
                     else:
-                        self.maps[Structure.mode] = self.read_in_map_oneliner_arr(line)
+                        self.maps[Structure.flat_modes[Structure.mode]] = self.read_in_map_oneliner_arr(line)
                 elif x >= state:
                     break
 
@@ -746,6 +737,7 @@ class Structure:
     def makeAnyContactMaps_rna(self, mchain=False):
         size = len(self.translations.pdb2structseq)
         for mode in Structure.available_modes_rna:
+            mode = Structure.flat_modes[mode]
             name = self.temp_path + "/_temp_" + self.objId + "{}_{}.map"
             mapa = np.zeros((size, size))
             mapa.fill(1000.)
@@ -757,6 +749,7 @@ class Structure:
     def makeAnyContactMaps_protein(self, mchain=False):
         size = len(self.translations.pdb2structseq)
         for mode in Structure.available_modes:
+            mode = Structure.flat_modes[mode]
             name = self.temp_path + "/_temp_" + self.objId + "{}_{}.map"
             mapa = np.zeros((size, size))
             mapa.fill(1000.)
@@ -764,31 +757,6 @@ class Structure:
                 for x, line in enumerate(mapfile):
                         self.read_in_any_map_oneliner(mapa, line)
             self.any_maps[mode] = mapa
-
-
-    def makeContactMap_old(self):
-        if Structure.mode in self.maps:
-            return
-        #nres = len(self.translations.unal_fasta2structseq)#
-        nres = len(self.residues)
-        map = np.zeros((nres,nres))
-        for x,i in enumerate(self.residues):
-            for y,j in enumerate(self.residues[x+1:]):
-                y+=x+1
-                if Structure.mode == "CA":
-                    d = RMSD(i.Calpha,j.Calpha)
-                elif Structure.mode == "CB":
-                    d = RMSD(i.Cbeta,j.Cbeta)
-                elif Structure.mode == "heavy":
-                    d = min([ min([RMSD(a,b) for a in i.heavy_atoms]) for b in j.heavy_atoms])
-                else:
-                    raise ValueError("Contact map mode not implemented")
-                #x = i.SSid
-                #y = j.SSid
-                map[x][y] = d
-                map[y][x] = d
-        self.maps[Structure.mode] = map
-
 
     def makeMultiStateContactFile(self, step = False,progress=False):
         if Structure.isRNA:
@@ -1209,75 +1177,6 @@ class Structure:
                 del alignment
         #print "doen calculating multichain map"
 
-    def makeICContactMap_old(self,mode = False): #inter-chain contacts
-        mode = mode if mode else Structure.mode
-        if mode in self.interchain_maps:
-            return
-        map = {}
-
-        lchains = self.chain_list + list(self.chains_to_keep)
-        for x in self.residues:
-            pos1 = x.pdbid
-            for y in self.residues:
-                if x==y: continue
-                #print ".",
-                pos2 = y.pdbid
-                min_dist_ref = 0
-                min_dist_all = 0
-                if not pos1 or not pos2:
-                    continue
-                for cc,l in enumerate(lchains):
-                    for r in lchains[cc+1:]:
-                        if l == r: continue
-                        if l == self.chain_list[0]:
-                            pos1l = pos1
-                            pos2l = pos2
-                        else:
-                            pos1l = self.chain_idx_ref[(self.chain_list[0],l)]+pos1
-                            pos2l = self.chain_idx_ref[(self.chain_list[0],l)]+pos2
-                        if r == self.chain_list[0]:
-                            pos1r = pos1
-                            pos2r = pos2
-                        else:
-                            pos1r = self.chain_idx_ref[(self.chain_list[0],r)]+pos1
-                            pos2r = self.chain_idx_ref[(self.chain_list[0],r)]+pos2
-                        for (i,j,c1,c2) in [(pos1l,pos2r,l,r),(pos1r,pos2l,r,l)]:
-                            try:
-                                if mode == "CA":
-                                    d = cmd.get_distance(atom1="{} and c. {} and i. {} and name CA and elem C".format(self.objId,c1,i),
-                                                         atom2="{} and c. {} and i. {} and name CA and elem C".format(self.objId,c2,j))
-                                elif mode == "CB":
-                                    d = cmd.get_distance(atom1="{} and c. {} and i. {} and name CB and elem C".format(self.objId,c1,i),
-                                                         atom2="{} and c. {} and i. {} and name CB and elem C".format(self.objId,c2,j))
-                                elif mode == "heavy":
-                                    d = 1000000.
-                                    for a in self.residues[x].heavy_atoms:
-                                        for b in self.residues[y].heavy_atoms:
-                                            dd = cmd.get_distance(atom1="{} and c. {} and i. {} and name {} and elem {}".format(self.objId,c1,i,a.name,a.elem),
-                                                         atom2="{} and c. {} and i. {} and name {} and elem {}".format(self.objId,c2,j,b.name,b.elem))
-                                            d = min(d,dd)
-                                if self.chain_list[0] in [c1,c2] and (min_dist_ref>d or not min_dist_ref):
-                                    min_dist_ref = d
-                                if min_dist_all>d or not min_dist_all:
-                                    min_dist_all = d
-                            except:
-                                print "Something ba-a-a-ad is happening in Oz!"
-                map[(pos1,pos2)] = [min_dist_ref,min_dist_all]
-        self.interchain_maps[mode] = map
-
-    def multichain_min_rmsd_old(self, pos1, pos2, all_combos=True):  ##TODO - by default it takes all chain combos, nothing else is implemented
-        #        if Structure.mode not in self.interchain_maps:
-        #           self.makeICContactMap()
-        #while Structure.mode not in self.interchain_maps:
-        #    if len(self.chain_list) <2 :
-        #        raise RuntimeError("We should not be in multichain  there is only one here")
-        #        break
-        #    time.sleep(10)
-        #return self.interchain_maps[Structure.mode][pos1][pos2]
-        return self.interchain_maps[Structure.mode].get((pos1, pos2), [0., 0.])[1 if all_combos else 0]
-
-
-
     def paintInserts(self):
         for res in self.residues:
             if res.insert:
@@ -1333,13 +1232,14 @@ class Structure:
                             #if x==0 : print data[x][y], x, y, ssx, ssy, px, py
                             continue
                     sc = 0.1
-                    if (any and 0. < self.any_maps[Structure.mode][ssx][ssy] < distance_intra) or (not any and 0. < self.maps[Structure.mode][ssx][ssy] < distance_intra):
+                    if (any and 0. < self.any_maps[Structure.flat_modes[Structure.mode]][ssx][ssy] < distance_intra) or \
+                            (not any and 0. < self.maps[Structure.flat_modes[Structure.mode]][ssx][ssy] < distance_intra):
                         sc = 1.
                     ##
                     if len(self.chains_to_keep)>1:
                         #if 0. < self.multichain_min_rmsd(px, py, all_combos=all_combos) < distance_inter:
                         #print self.interchain_maps[Structure.mode][ssx][ssy]
-                        if 0. < self.interchain_maps[Structure.mode][ssx][ssy] < distance_inter:
+                        if 0. < self.interchain_maps[Structure.flat_modes[Structure.mode]][ssx][ssy] < distance_inter:
                             #                        print "will rms",distance_intra,px,py,ssx,ssy
                             sc += 2.
                     out[x][y] = sc
@@ -1349,12 +1249,12 @@ class Structure:
             for y in xrange(0, x):
                 #if y <= x:
                     if comparison:
-                        contacts = self.maps[Structure.mode]
+                        contacts = self.maps[Structure.flat_modes[Structure.mode]]
                         if restricted:
                             ax = self.translations.singleplot_restrict_native(x)
                             ay = self.translations.singleplot_restrict_native(y)
                             if ax is not None and ay is not None:
-                                if Structure.mode == "canonical":
+                                if Structure.flat_modes[Structure.mode] == "canonical":
                                     if nonwc:
                                         out[x][y] = 5 if contacts[x][y] and (contacts[x][y] < 5.) else -1.
                                     else:
@@ -1367,7 +1267,7 @@ class Structure:
                             ax = self.translations.singleplot_native(x)
                             ay = self.translations.singleplot_native(y)
                             if ax is not None and ay is not None:
-                                if Structure.mode == "canonical":
+                                if Structure.flat_modes[Structure.mode] == "canonical":
                                     if nonwc:
                                         out[x][y] = 5 if contacts[ax][ay] and (contacts[ax][ay] < 5.) else -1.
                                     else:
@@ -1408,14 +1308,14 @@ class Structure:
         if comparison:
             TP = 0
             #print "COMPARISON"
-            contacts = self.maps[Structure.mode]
+            contacts = self.maps[Structure.flat_modes[Structure.mode]]
             #print "contacts",contacts,len(contacts)
             for x in xrange(size):
                 for y in xrange(0,x):
                     ax = self.translations.singleplot_restrict_native(x)
                     ay = self.translations.singleplot_restrict_native(y)
                     if ax is not None and ay is not None:
-                        if Structure.mode == "canonical":
+                        if Structure.flat_modes[Structure.mode] == "canonical":
                             if nonwc:
                                 output[x][y] = 5*(contacts[x][y] < 5.) if contacts[x][y] else -1.
                             else:
@@ -1449,13 +1349,13 @@ class Structure:
         TP = None
         if comparison:
             TP = 0
-            contacts = self.maps[Structure.mode]
+            contacts = self.maps[Structure.flat_modes[Structure.mode]]
             for x in xrange(size):
                 for y in xrange(0,x):
                     ax = self.translations.singleplot_native(x)
                     ay = self.translations.singleplot_native(y)
                     if ax is not None and ay is not None:
-                        if Structure.mode == "canonical":
+                        if Structure.flat_modes[Structure.mode] == "canonical":
                             if nonwc:
                                 output[x][y] = 5*(contacts[ax][ay] < 5.) if contacts[ax][ay]else -1.
                             else:
