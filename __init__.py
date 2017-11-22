@@ -613,6 +613,16 @@ class dcaMOL:
                                    command=self.slider_mid_change, width=6)
         self.slider_mid.grid(column=1,row=1)
 
+        ### END SPINS
+
+        ##### PYMOL SELECTION
+        self.get_pymol_selection = Tk.Button(master=self.left_bar, text='Mark structure selection on plot', \
+                                             command=self.mark_pymol_selection_on_plot)
+
+        #### END PYMOL SELECTION
+
+
+        ### LEGEND
         self.legend = Tk.Frame(self.left_bar)  # legend for secondary structure
 
 
@@ -624,7 +634,6 @@ class dcaMOL:
         Tk.Label(self.legend, text="Missing residue").grid(column=0,row=3)
         Tk.Label(self.legend, foreground="gray",text="X").grid(column=1,row=3)
 
-        ### END SPINS
 
         ################################ END LEFT BAR
 
@@ -1639,7 +1648,7 @@ class dcaMOL:
         try:
             X = int(self.top_values_cnt.get())
         except:
-            tkMessageBox("There is something wrong with the entered value \n Error code: (PEBKAC)")
+            tkMessageBox.showerror(message="There is something wrong with the entered value \n Error code: (PEBKAC)")
         if type(self.data) == np.ma.MaskedArray:
             cutoff = np.ma.sort(np.triu(self.data), axis=None, fill_value=0.)[-X]
         else:
@@ -1652,7 +1661,7 @@ class dcaMOL:
         try:
             PC = int(self.top_values_pc.get())
         except:
-            tkMessageBox("There is something wrong with the entered value \n Error code: (PEBKAC)")
+            tkMessageBox.showerror(message="There is something wrong with the entered value \n Error code: (PEBKAC)")
         X = int(((self.data.shape[0] * self.data.shape[1] - self.data.shape[1]) / 2) * (PC / 100.))
         self.top_values_cnt.set(int(X))
         if type(self.data) == np.ma.MaskedArray:
@@ -1873,7 +1882,8 @@ class dcaMOL:
 
             self.menubar.entryconfig("Single structure plot", state=Tk.NORMAL)
             self.SSframe.grid(column=0,row=0)
-            self.legend.grid(column=0, row=5, sticky="S")
+            self.get_pymol_selection.grid(column=0, row=5, sticky="S")
+            self.legend.grid(column=0, row=6, sticky="S")
             #self.spin_comp_distance.pack(side=Tk.TOP)
             #self.menu_atom_mode.pack(side=Tk.TOP)
             #self.cursor_position_frame.pack(side=Tk.TOP)
@@ -1883,6 +1893,7 @@ class dcaMOL:
             self.menubar.entryconfig("Single structure plot", state=Tk.DISABLED)
             self.SSframe.grid_remove()
             self.legend.grid_remove()
+            self.get_pymol_selection.grid_remove()
             plt.subplots_adjust(left=0.03, bottom=0.03, right=1, top=1, wspace=0, hspace=0)
             self.current_structure_var = None
             self.current_structure_obj_var = None
@@ -2259,6 +2270,60 @@ class dcaMOL:
                 self.AXLINES.append(r)
         else:
             pass
+
+    def mark_pymol_selection_on_plot(self):
+        space = {'residues': []}
+        cmd.iterate_state(1, "( %s and %s ) and polymer and (sele)" % (self.current_structure_obj_var.objId, self.current_structure_obj_var.chain),
+                          "residues.append((resv,chain))",
+                          space=space)
+        selections,chains = hf.find_regions(space['residues'])
+        if len(selections)!=2:
+            tkMessageBox.showerror(message="You must select -exactly- two, non-consecutive (in terms or residue indices) regions!")
+            return
+
+        structure = self.current_structure_obj_var
+        if len(chains)>1:
+            selections = map(lambda x: x[0] if x[1]==structure.chain else map(lambda y: y-structure.chain_idx_ref[(structure.chain,x[1])],x[0]),selections)
+        else:
+            selections = map(lambda x: x[0],selections)
+
+        print "selections",selections
+        X = selections[0]
+        Y = selections[1]
+        print "pre", X,Y
+        if self.restrict_to_structure_var.get():
+            X = map(lambda x: structure.translations.pdb2structseq[x],X)
+            Y = map(lambda x: structure.translations.pdb2structseq[x],Y)
+        else:
+            X = map(structure.translations.resid2unal_fasta,X)
+            Y = map(structure.translations.resid2unal_fasta,Y)
+        mode = "R" if len(chains)>1 else "L"
+        X= filter(lambda x: x is not None,X)
+        Y= filter(lambda x: x is not None,Y)
+        if len(X)<2 or len(Y)<2:
+            tkMessageBox.showerror(
+                message="At least one of your selected regions does not appear in the DI scores file")
+            return
+        X=[X[0],X[-1]]
+        Y=[Y[0],Y[-1]]
+        print "post", X, Y
+        print self.SELECTED_REGIONS
+        self.SELECTED_REGIONS = [(X, Y, mode)]
+        print self.SELECTED_REGIONS
+        if not self.HELD_CTRL.get():
+            self.clear_pymol_bonds()
+            for line in self.AXLINES:
+                try:
+                    line.remove()
+                    del line
+                except ValueError:
+                    pass
+                    self.AXLINES = []
+        if mode=="L" or any(len(x.chain_list)>1 for x in s):
+            self.draw_selected_patch((X, Y, mode))
+        self.canvas.draw()
+        self.bonds_in_patches(X, Y, structure, mode=(mode == "R"))
+
 
     def select_on_plot(self,final_pos):
 

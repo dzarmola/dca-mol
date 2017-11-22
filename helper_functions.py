@@ -113,3 +113,29 @@ def find_module(modulename, filename=None):
     full_path += sys.path
     fname = imp.find_module(modulename, full_path)
     return fname[1]
+
+def find_continuous(lista,ch=False):
+    all = []
+    current = [lista[0]]
+    for i in lista[1:]:
+        if i!=(current[-1]+1):
+            all.append(current)
+            current=[i]
+        else:
+            current.append(i)
+    all.append(current)
+    if ch:
+        return map(lambda x: (x, ch), all)
+    return all
+
+def find_regions(lista):
+    lista = sorted(list(set(lista)))
+    chains = set(x[1] for x in lista)
+    regions = []
+    print "lista",lista
+    print "chains are",chains
+    for ch in chains:
+        regions+=find_continuous(map(lambda y: y[0],filter(lambda x: x[1]==ch,lista)),ch)
+    print "regions",regions
+    return regions,chains
+
