@@ -383,7 +383,7 @@ class dcaMOL:
 
         ### TODO grid above
 
-        self.MCmenu.add_checkbutton(label='Flip intra/interchain selection', command=self.lets_do_the_flip)
+        self.MCmenu.add_command(label='Flip intra/interchain selection', command=self.lets_do_the_flip,underline=0)
 
         self.MCmenu.add_checkbutton(label="Add bonds also to homologous chains",
                                        variable=self.mark_on_similar, command=self.redraw_bonds)
@@ -1953,6 +1953,8 @@ class dcaMOL:
             mesh = True
         if self.map_structure_mode.get() == self.OPCJE[0]:
             return
+        self.clear_pymol_bonds()
+        self.SELECTED_REGIONS = []
         self.TP_frame.grid_forget()
         self.FIGURE.clf()
         self.SS_plots = []
@@ -2039,8 +2041,10 @@ class dcaMOL:
             if x=="L": return "R"
             else: return "L"
 
+        print "selected",self.SELECTED_REGIONS
         for i,reg in enumerate(self.SELECTED_REGIONS):
             self.SELECTED_REGIONS[i] = list(reg[:-1])+[flip(reg[-1])]
+        print "new selected", self.SELECTED_REGIONS
         for patch in self.SELECTED_REGIONS: ## TODO only draws on top
             self.draw_selected_patch(patch)
         self.canvas.draw()
@@ -2250,6 +2254,9 @@ class dcaMOL:
 
     def draw_selected_patch(self, patch):
         X, Y, typ = patch
+        print "drawing selected patch"
+        print X
+        print Y
         X = map(int,X)
         Y = map(int,Y)
 
@@ -2267,7 +2274,7 @@ class dcaMOL:
             self.aplot.add_patch(p)
             self.AXLINES.append(p)
             if self.comp_mode.get():
-                r = patches.Rectangle((Y[0], X[0]), (Y[1] - Y[0] + 1), (X[1] - X[0] + 1), lls='dashed',color="g", fill=0)
+                r = patches.Rectangle((Y[0], X[0]), (Y[1] - Y[0] + 1), (X[1] - X[0] + 1), ls='dashed',color="g", fill=0)
                 self.aplot.add_patch(r)
                 self.AXLINES.append(r)
         else:
