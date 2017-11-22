@@ -306,12 +306,14 @@ class dcaMOL:
 
 
         self.fileMenu = Tk.Menu(self.menubar)
-        self.fileMenu.add_command(label='Save plot as .png', command=lambda: self._save(0), underline=14)
-        self.fileMenu.add_command(label='Save plot as .svg', command=lambda: self._save(1), underline=14)
-        self.fileMenu.add_command(label='Save plot as .eps', command=lambda: self._save(2), underline=14)
+        self.fileMenu.add_command(label='Save plot image', command=lambda: self._save(0), underline=14)
+        #self.fileMenu.add_command(label='Save plot as .svg', command=lambda: self._save(1), underline=14)
+        #self.fileMenu.add_command(label='Save plot as .eps', command=lambda: self._save(2), underline=14)
         self.fileMenu.add_separator()
         self.fileMenu.add_command(label='Write out native contacts', command=self.write_native_contacts, underline=10,state=Tk.DISABLED)
         self.fileMenu.add_command(label='Write out all contacts', command=self.write_all_contacts, underline=10,state=Tk.DISABLED)
+        self.fileMenu.add_command(label='Write out currently shown DI scores', command=self.write_shown_di, underline=10,state=Tk.DISABLED)
+        self.fileMenu.add_command(label='Write out currently selected DI scores', command=self.write_selected_di, underline=10,state=Tk.DISABLED)
         self.fileMenu.add_separator()
         self.fileMenu.add_command(label="Options", command=self._configure_window, underline=0)
         self.fileMenu.add_separator()
@@ -774,6 +776,31 @@ class dcaMOL:
                         outfile.flush()
         self.wait_window.withdraw()
         return
+
+    def write_shown_di(self):
+        outfile = tkFileDialog.asksaveasfilename(defaultextension=".txt")
+        self.wait("Writing out currently shown DI scores for {}".format(self.current_structure_var))
+        single = "Single" in self.map_structure_mode.get()
+        assert single == True
+        structure = self.current_structure_obj_var
+        with open(outfile, "w", 1) as outfile:
+            size = self.data.shape[0]
+            for x in xrange(size):
+                for y in xrange(x+1,size):
+                    if self.data[x][y]>self.slider_min.get():
+
+                        if self.restrict_to_structure_var.get():
+                            sx = structure.translations.struct2pdb(x)
+                            sy = structure.translations.struct2pdb(y)
+                        else:
+                            sx = structure.translations.struct2pdb(structure.translations.singleplot_bonds(x))
+                            sy = structure.translations.struct2pdb(structure.translations.singleplot_bonds(y))
+                        if not sx or not sy: continue
+                        outfile.write("{}\t{}\t{}\n".format(x, y, self.data[x][y]))
+                        outfile.flush()
+        self.wait_window.withdraw()
+        return
+
     def goto_last_state(self):
         #cmd.set("state", self.last_state_var.get())
         self.current_state_var.set(self.last_state_var.get())
@@ -1051,9 +1078,15 @@ class dcaMOL:
         if tkMessageBox.askokcancel("Quit", "Do you want to quit?"):
             self._quit(True,parent)
 
-    def _save(self,vector=0):
-        exts = {0:".png",1:".svg",2:".eps"}
-        plik = tkFileDialog.asksaveasfilename(defaultextension=exts[vector])
+    def _save(self):
+        #exts = {0:".png",1:".svg",2:".eps"}
+        ftypes = [('PGF code for LaTeX', '*.pgf'), ('Scalable Vector Graphics', '*.svgz'), \
+                  ('Tagged Image File Format', '*.tiff'), ('Joint Photographic Experts Group', '*.jpg'), \
+                  ('Raw RGBA bitmap', '*.raw'), ('Joint Photographic Experts Group', '*.jpeg'), \
+                  ('Portable Network Graphics', '*.png'), ('Postscript', '*.ps'), ('Scalable Vector Graphics', '*.svg'), \
+                  ('Encapsulated Postscript', '*.eps'), ('Raw RGBA bitmap', '*.rgba'), \
+                  ('Portable Document Format', '*.pdf'), ('Tagged Image File Format', '*.tif')]
+        plik = tkFileDialog.asksaveasfilename(filetypes=ftypes,defaultextension=".png")
         print "Saving {} ... ".format(plik),
         """if vector>0:
             if "Single" in self.map_structure_mode.get():
@@ -1062,7 +1095,7 @@ class dcaMOL:
                 heatmap = self.aplot.pcolormesh(self.data, cmap=self.cmapa,vmin=self.slider_min.get(),vmax=self.slider_max.get())
                 self.canvas.draw()"""
 
-        self.FIGURE.savefig(plik,format=exts[vector].strip("."),dpi=self.default_dpi)
+        self.FIGURE.savefig(plik,format=plik.split(".")[-1],dpi=self.default_dpi)
         """if "Single" in self.map_structure_mode.get():
             self.makeSSplot()
         else:
@@ -2251,12 +2284,12 @@ class dcaMOL:
             if event.x < self.LAST_CLICKED_POS[2]:
                 xdat = 0
             else:
-                xdat = self.aplot.get_xlim()[1]# size
+                xdat = self.aplot.get_xlim()[1]-1# size
         if event.ydata is None:
             if event.y < self.LAST_CLICKED_POS[3]:
                 ydat = 0
             else:
-                ydat = self.aplot.get_ylim()[1]# .size
+                ydat = self.aplot.get_ylim()[1]-1# .size
         self.select_on_plot([xdat, ydat, self.BUTTONS[event.button]])
         self.LAST_CLICKED_POS = [xdat, ydat, event.x, event.y]
 
