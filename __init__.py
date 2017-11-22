@@ -306,7 +306,7 @@ class dcaMOL:
 
 
         self.fileMenu = Tk.Menu(self.menubar)
-        self.fileMenu.add_command(label='Save plot image', command=lambda: self._save(0), underline=14)
+        self.fileMenu.add_command(label='Save plot image', command=lambda: self._save(), underline=14)
         #self.fileMenu.add_command(label='Save plot as .svg', command=lambda: self._save(1), underline=14)
         #self.fileMenu.add_command(label='Save plot as .eps', command=lambda: self._save(2), underline=14)
         self.fileMenu.add_separator()
@@ -762,7 +762,8 @@ class dcaMOL:
         return
 
     def write_all_contacts(self):
-        outfile = tkFileDialog.asksaveasfilename(defaultextension=".txt")
+        ftypes=[('Text file', '*.txt'), ('All files', '*')]
+        outfile = tkFileDialog.asksaveasfilename(defaultextension=".txt",filetypes=ftypes)
         self.wait("Writing out all contacts map for {}".format(self.current_structure_var))
         with open(outfile, "w", 1) as outfile:
             with open(self.path+"/_temp_" + self.current_structure_var + "_" + dm.Structure.mode.strip("'") + ".map") as map_file:
@@ -778,10 +779,11 @@ class dcaMOL:
         return
 
     def write_shown_di(self):
-        outfile = tkFileDialog.asksaveasfilename(defaultextension=".txt")
+        ftypes=[('Text file', '*.txt'), ('All files', '*')]
+        outfile = tkFileDialog.asksaveasfilename(defaultextension=".txt",filetypes=ftypes)
         self.wait("Writing out currently shown DI scores for {}".format(self.current_structure_var))
         single = "Single" in self.map_structure_mode.get()
-        assert single == True
+        assert single is True
         structure = self.current_structure_obj_var
         with open(outfile, "w", 1) as outfile:
             size = self.data.shape[0]
@@ -796,8 +798,32 @@ class dcaMOL:
                             sx = structure.translations.struct2pdb(structure.translations.singleplot_bonds(x))
                             sy = structure.translations.struct2pdb(structure.translations.singleplot_bonds(y))
                         if not sx or not sy: continue
-                        outfile.write("{}\t{}\t{}\n".format(x, y, self.data[x][y]))
+                        outfile.write("{}\t{}\t{}\n".format(sx, sy, self.data[x][y]))
                         outfile.flush()
+        self.wait_window.withdraw()
+        return
+    def write_selected_di(self):
+        ftypes=[('Text file', '*.txt'), ('All files', '*')]
+        outfile = tkFileDialog.asksaveasfilename(defaultextension=".txt",filetypes=ftypes)
+        self.wait("Writing out currently selected DI scores for {}".format(self.current_structure_var))
+        single = "Single" in self.map_structure_mode.get()
+        assert single is True
+        structure = self.current_structure_obj_var
+        with open(outfile, "w", 1) as outfile:
+            size = self.data.shape[0]
+            for X, Y, fp2 in self.SELECTED_REGIONS:
+                for x in xrange(int(X[0]),int(X[1])+1):
+                    for y in xrange(int(Y[0]),int(Y[1])+1):
+                        if self.data[x][y]>self.slider_min.get():
+                            if self.restrict_to_structure_var.get():
+                                sx = structure.translations.struct2pdb(x)
+                                sy = structure.translations.struct2pdb(y)
+                            else:
+                                sx = structure.translations.struct2pdb(structure.translations.singleplot_bonds(x))
+                                sy = structure.translations.struct2pdb(structure.translations.singleplot_bonds(y))
+                            if not sx or not sy: continue
+                            outfile.write("{}\t{}\t{}\n".format(sx, sy, self.data[x][y]))
+                            outfile.flush()
         self.wait_window.withdraw()
         return
 
@@ -821,7 +847,8 @@ class dcaMOL:
 
 
     def ask_for_save(self,cont): ## returns opened file?
-        cont.append(tkFileDialog.asksaveasfilename(defaultextension=".txt"))
+        ftypes=[('Text file', '*.txt'), ('All files', '*')]
+        cont.append(tkFileDialog.asksaveasfilename(defaultextension=".txt",filetypes=ftypes))
 
     def ask_for_path(self,cont,path): ## returns opened file?
         cont.append(tkFileDialog.askdirectory(initialdir=path))
@@ -1830,6 +1857,8 @@ class dcaMOL:
             self.current_structure_obj_var = [x for x in self.STRUCTURES if x.objId in self.current_structure_var][0]
             self.fileMenu.entryconfig(5,state=Tk.NORMAL)
             self.fileMenu.entryconfig(6,state=Tk.NORMAL)
+            self.fileMenu.entryconfig(3, state=Tk.NORMAL)
+            self.fileMenu.entryconfig(4, state=Tk.NORMAL)
             #    self.write_native_contacts_button.pack(side=Tk.LEFT)
             #    self.write_all_contacts_button.pack(side=Tk.LEFT)
             self.comp_mode.set(False)
@@ -1856,6 +1885,8 @@ class dcaMOL:
             self.current_structure_obj_var = None
             self.fileMenu.entryconfig(5,state=Tk.DISABLED)
             self.fileMenu.entryconfig(6,state=Tk.DISABLED)
+            self.fileMenu.entryconfig(3,state=Tk.DISABLED)
+            self.fileMenu.entryconfig(4,state=Tk.DISABLED)
             #    self.write_native_contacts_button.pack_forget()
             #    self.write_all_contacts_button.pack_forget()
             #self.spin_comp_distance.pack_forget()
