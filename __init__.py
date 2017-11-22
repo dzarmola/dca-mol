@@ -224,10 +224,10 @@ class dcaMOL:
                     test.write("Done")
 
 
-        self.loader_window = Tk.Toplevel()
+        self.loader_window = Tk.Toplevel(self.parent)
         self.loader_window.wm_title("This will someday be the dcaMOL")
 
-        self.root = Tk.Toplevel()
+        self.root = Tk.Toplevel(self.parent)
         self.root.withdraw()
 
 
@@ -2086,12 +2086,12 @@ class dcaMOL:
         if just_within:
             just_within_cutoff = self.mark_on_similar_just_within_cutoff.get()
         obj, clist, cmap, idx_ref = obj if obj else (False, False, False)
-        try:
-            assert len(clist) == 1
+        """try:
+            assert len(obj.chain) == 1
         except:
             raise AssertionError("How did you manage to get both multichain and 'similar chains' options on? I refuse to work with a cheater")
-
-        my_list = clist + cmap[clist[0]]
+        """
+        my_list = clist #+ cmap[clist[0]]
         pairs_to_bond = []
         cmd.set('valence', 1)
         for tmpi, c in enumerate(my_list):
@@ -2172,9 +2172,11 @@ class dcaMOL:
         pass
 
     def add_pymol_bond(self,res1, res2, color, obj='', mode=0):
+        print "Adding?",mode, obj
         if mode == 0:
             self.add_pymol_bond_to_object_intra(res1, res2, color, obj)
         elif len(obj[1])>1:
+            print "Will add inter"
             self.add_pymol_bond_to_object_inter(res1, res2, color, obj)
 
     def bonds_in_patches(self, X, Y, structures=None, mode=0):
@@ -2217,7 +2219,7 @@ class dcaMOL:
                     if not sx or not sy: continue
                     color = self.get_bond_color(value)
 #                    color = cmap(value / scale) if cmap else self.binaryColormapColor(value)
-
+                    print "Should add",sx,sy,color
                     self.add_pymol_bond(sx, sy, color, (structure.objId, structure.chain_list, structure.chain_map, structure.chain_idx_ref), mode=mode)
         if single:
             self.update_list_of_bonds()
@@ -2273,7 +2275,7 @@ class dcaMOL:
 
     def mark_pymol_selection_on_plot(self):
         space = {'residues': []}
-        cmd.iterate_state(1, "( %s and %s ) and polymer and (sele)" % (self.current_structure_obj_var.objId, self.current_structure_obj_var.chain),
+        cmd.iterate_state(1, "( %s ) and polymer and (sele)" % (self.current_structure_obj_var.objId),
                           "residues.append((resv,chain))",
                           space=space)
         selections,chains = hf.find_regions(space['residues'])
@@ -2283,7 +2285,7 @@ class dcaMOL:
 
         structure = self.current_structure_obj_var
         if len(chains)>1:
-            selections = map(lambda x: x[0] if x[1]==structure.chain else map(lambda y: y-structure.chain_idx_ref[(structure.chain,x[1])],x[0]),selections)
+            selections = map(lambda x: x[0] if x[1]==structure.chain_simple else map(lambda y: y-structure.chain_idx_ref[(structure.chain_simple,x[1])],x[0]),selections)
         else:
             selections = map(lambda x: x[0],selections)
 
@@ -2319,8 +2321,8 @@ class dcaMOL:
                 except ValueError:
                     pass
                     self.AXLINES = []
-        if mode=="L" or any(len(x.chain_list)>1 for x in s):
-            self.draw_selected_patch((X, Y, mode))
+        #if mode=="L" or len(chains)>1:
+        self.draw_selected_patch((X, Y, mode))
         self.canvas.draw()
         self.bonds_in_patches(X, Y, structure, mode=(mode == "R"))
 

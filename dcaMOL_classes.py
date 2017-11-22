@@ -505,12 +505,13 @@ class Structure:
 
 
         self.objId = objId
-        self.chain_list = ([chain] if "." not in chain else chain.split(".")) if chain else cmd.get_chains(objId)[:1]
-        self.chain = "(" + " or ".join(["c. "+x for x in self.chain_list]) + ")"
+        self.chain_list = ([chain] if "." not in chain else chain.split(".")) if chain else cmd.get_chains(objId)
+        #self.chain = "(" + " or ".join(["c. "+x for x in self.chain_list]) + ")"
         self.chain_simple = self.chain_list[0]
+        self.chain = "( c. {} )".format(self.chain_simple)
         self.seqName = seqName
         self.sequence = sequence
-        self.str_sequence = "".join(cmd.get_fastastr("(%s and c. %s)" % (objId,self.chain_list[0])).split()[1:])
+        self.str_sequence = "".join(cmd.get_fastastr("(%s and c. %s)" % (objId,self.chain_simple)).split()[1:])
 
         self.residues_mapping()
         if not self.str_sequence:
