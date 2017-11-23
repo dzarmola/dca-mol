@@ -1025,6 +1025,10 @@ class dcaMOL:
         return cmap,norm
 
     def _quit(self,asked=False,parent=False):
+        if parent:
+            self.parent.quit()
+            self.parent.destroy()
+            return
         if asked or tkMessageBox.askokcancel("Quit", "Do you want to quit?"):
             pass
         else:
@@ -1032,9 +1036,9 @@ class dcaMOL:
         self._delete_temp_files()
         self.root.quit()  # stops mainloop
         self.root.destroy()  # this is necessary on Windows to prevent
-        if parent:
-            self.parent.quit()
-            self.parent.destroy()
+        #if parent:
+        #    self.parent.quit()
+        #    self.parent.destroy()
         #sys.exit(0)
         # Fatal Python Error: PyEval_RestoreThread: NULL tstate
 
