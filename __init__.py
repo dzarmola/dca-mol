@@ -1250,8 +1250,11 @@ class dcaMOL:
         self.sequence_selection_window.mainloop()
 
     def read_pdb(self,variable, label):
-        variable.set(tkFileDialog.askopenfilename(filetypes=[('PDB files', '.pdb'), ('All files', '.*')],
-                                                  title="Select your PDB file"))
+        file = tkFileDialog.askopenfilename(filetypes=[('PDB files', '.pdb'), ('All files', '.*')],
+                                                  title="Select your PDB file")
+        if not file:
+            return
+        variable.set(file)
         label['text'] = ntpath.basename(variable.get())  #TODO  unix filenames with backslashes - may fail
 
     def on_entry_click(event):
@@ -1334,7 +1337,7 @@ class dcaMOL:
             keep_gay_utopia_vars.append(Tk.BooleanVar())
             keep_gay_utopia_vars[-1].set(0)
             keep_gay_utopia.append(
-                Tk.Checkbutton(rightCol1, text="Keep similar chains", variable=keep_gay_utopia_vars[-1]))
+                Tk.Checkbutton(rightCol1, text="Keep chains with >90% identity", variable=keep_gay_utopia_vars[-1]))
             if self.overall_mode == 1:
                 keep_gay_utopia[-1]['state'] = Tk.DISABLED
             keep_gay_utopia[-1].pack(side=Tk.TOP)
@@ -1523,13 +1526,13 @@ class dcaMOL:
         self.asker.title("Action needed")
         Tk.Label(self.asker,
                  text="Your residue indices start at {},\nwhat index corresponds to the first column\nof the alignmnent?".format(
-                     minimal)).pack(side=Tk.TOP)
-        val = Tk.StringVar()
-        val.set(str(minimal))
+                     minimal)).grid(row=0, column=0)
+        val = Tk.IntVar()
+        val.set(minimal)
         vale = Tk.Entry(self.asker, width=3, textvariable=val)
-        vale.pack(side=Tk.TOP)
+        vale.grid(row=1,column=0)
         vale.focus()
-        Tk.Button(master=self.asker, text='Done', command=lambda: send_result(val)).pack()
+        Tk.Button(master=self.asker, text='Done', command=lambda: send_result(val)).grid(row=2,column=0)
         self.asker.mainloop()
 
     def slider_min_change(self,*args):  # TODO - wywalic bondy ponizej wartosci
