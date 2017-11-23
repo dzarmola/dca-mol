@@ -1243,6 +1243,16 @@ class dcaMOL:
                                                   title="Select your PDB file"))
         label['text'] = ntpath.basename(variable.get())  #TODO  unix filenames with backslashes - may fail
 
+    def on_entry_click(event):
+        """function that gets called whenever entry is clicked"""
+        if entry.get() == 'PDB ID':
+           entry.delete(0, "end") # delete all the text in the entry
+           entry.insert(0, '') #Insert blank for user input
+           entry.config(fg = 'black')
+    def on_focusout(event):
+        if entry.get() == '':
+            entry.insert(0, 'PDB ID')
+            entry.config(fg = 'grey')
 
     def ask_for_correct_ids(self,selected, mapping):
         self.sequence_selection_window = Tk.Toplevel(self.root)
@@ -1384,6 +1394,9 @@ class dcaMOL:
             labels[-1].pack(side=Tk.TOP)
             entries_vars.append(Tk.StringVar())
             entries.append(Tk.Entry(middleCol0, width=6, textvariable=entries_vars[index]))
+            entries[-1].bind('<FocusIn>', on_entry_click)
+            entries[-1].bind('<FocusOut>', on_focusout)
+            entries[-1].config(fg = 'grey')
             entries[-1].pack(side=Tk.TOP)
             Tk.Label(middleCol1, text="Chain(s):").pack(side=Tk.TOP)
             chains_vars.append(Tk.StringVar())
