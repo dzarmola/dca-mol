@@ -694,7 +694,7 @@ class dcaMOL:
 
 
 
-        self.root.protocol("WM_DELETE_WINDOW", self._on_closing)
+        self.root.protocol("WM_DELETE_WINDOW", lambda: self._on_closing(False))
         self.parent.protocol("WM_DELETE_WINDOW", lambda: self._on_closing(True))
 
         self.dcaMOL_main()
@@ -2574,7 +2574,7 @@ class dcaMOL:
                         #    _ = float(line[3])
                         #    di_loc.set(3)
                         #except:
-                            loc = tkSimpleDialog.askinteger("Input","In which column ({}-{}) are the DI scores?\nExample line:\n{}".format(1,len(line.split()),line), \
+                            loc = tkSimpleDialog.askinteger("Input","In which column ({}-{}) are the DI scores?\nExample line from your file:\n\n{}".format(1,len(line.split()),line), \
                                                              parent=self.root,minvalue=1,maxvalue=len(line.split()))
                             if loc is not None:
                                 di_loc.set(loc-1)
