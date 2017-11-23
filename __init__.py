@@ -1173,20 +1173,31 @@ class dcaMOL:
         but_ld_label.set("Load DI scores")
 
         def load_alignment(*args):
-            self.alignment.set(tkFileDialog.askopenfilename(parent=root, filetypes=[('MSA files', '*.fa *.fasta *.msa *txt'),
+            file = tkFileDialog.askopenfilename(parent=root, filetypes=[('MSA files', '*.fa *.fasta *.msa *txt'),
                                                                                ('All files', '.*')],
-                                                       title="Select your alignment file"))
+                                                       title="Select your alignment file")
+            if not file:
+                return
+            self.alignment.set(file)
             print "Alignment scores will be read from:", self.alignment.get()
-            but_la_label.set("Load alignment from {}".format(ntpath.basename(self.alignment.get())))
+            fname = ntpath.basename(self.alignment.get())
+            if len(fname)>15:
+                fname=fname[:10]+"(...)"
+            but_la_label.set("Load alignment from {}".format(fname))
             if self.discores.get() and self.alignment.get():
                 starter0.config(state="normal")
                 starter1.config(state="normal")
 
         def load_discores(*args):
-            self.discores.set(
-                tkFileDialog.askopenfilename(parent=root, filetypes=[('DI files', ('*.dca *.di *.DI')), ('All files', '.*')],
-                                             title="Select your DI file"))
-            but_ld_label.set("Load DI scores from {}".format(ntpath.basename(self.discores.get())))
+            file = tkFileDialog.askopenfilename(parent=root, filetypes=[('DI files', ('*.dca *.di *.DI')), ('All files', '.*')],
+                                             title="Select your DI file")
+            if not file:
+                return
+            self.discores.set(file)
+            fname=ntpath.basename(self.discores.get())
+            if len(fname)>15:
+                fname=fname[:10]+"(...)"
+            but_ld_label.set("Load DI scores from {}".format(fname))
             print "DI scores will be read from:",self.discores.get()
             if self.discores.get() and self.alignment.get():
                 starter0.config(state="normal")
