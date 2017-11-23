@@ -1209,19 +1209,19 @@ class dcaMOL:
         but_ld_label.set("Load DI scores")
 
         but_la = Tk.Button(root, textvariable=but_la_label, command=load_alignment)
-        but_la.pack()
+        but_la.grid(row=0,column=0,columnspan=2)
 
         but_ld = Tk.Button(root, textvariable= but_ld_label, command=load_discores)
-        but_ld.pack()
+        but_ld.grid(row=1,column=0,columntspan=2)
 
         #starter0 = Tk.Button(root, text="Start analyzing!", command=self.start_plot)
-        starter0 = Tk.Button(root, text="Start analyzing!", command=lambda: self.start_plot(0))
+        starter0 = Tk.Button(root, text="Start analysis\n(single state)", command=lambda: self.start_plot(0))
         starter0.config(state="disabled")
-        starter0.pack()
+        starter0.grid(row=2,column=0)
 
-        starter1 = Tk.Button(root, text="Start analyzing in the multistate mode!", command=lambda: self.start_plot(1))
+        starter1 = Tk.Button(root, text="Start analysis\n(multi state)", command=lambda: self.start_plot(1))
         starter1.config(state="disabled")
-        starter1.pack()
+        starter1.grid(row=2,column=1)
 
         if self.alignment.get() and self.discores.get():
             but_la_label.set("Load alignment from {}".format(ntpath.basename(self.alignment.get())))
