@@ -1232,9 +1232,9 @@ class dcaMOL:
     def ask_for_structures(self,headers, selected):
         self.sequence_selection_window = Tk.Toplevel(self.root)
         self.sequence_selection_window.title("Select")
-        Tk.Label(master=self.sequence_selection_window,text="Which structures from the alignment do you want to fetch?").pack()
-        sequence_selection = Tk.Listbox(self.sequence_selection_window, selectmode='multiple', exportselection=0)
-        sequence_selection.pack()
+        Tk.Label(master=self.sequence_selection_window,text="For which sequence(s) from the alignment do you want to assign a structure?").grid(row=0,column=0)
+        sequence_selection = Tk.Listbox(self.sequence_selection_window, selectmode='multiple', exportselection=0,width=max(len(x) for x in headers))
+        sequence_selection.grid(row=1,column=0)
         for header in headers:
             sequence_selection.insert(Tk.END, header)
 
@@ -1246,7 +1246,7 @@ class dcaMOL:
             self.sequence_selection_window.destroy()
 
         sel_button = Tk.Button(master=self.sequence_selection_window, text='Done', command=get_selected)
-        sel_button.pack()
+        sel_button.grid(row=2,column=0)
         self.sequence_selection_window.mainloop()
 
     def read_pdb(self,variable, label):
