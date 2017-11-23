@@ -1649,6 +1649,9 @@ class dcaMOL:
             X = int(self.top_values_cnt.get())
         except:
             tkMessageBox.showerror(message="There is something wrong with the entered value \n Error code: (PEBKAC)")
+            return
+        if X==-1:
+            X=0
         if type(self.data) == np.ma.MaskedArray:
             cutoff = np.ma.sort(np.triu(self.data), axis=None, fill_value=0.)[-X]
         else:
@@ -1662,7 +1665,11 @@ class dcaMOL:
             PC = int(self.top_values_pc.get())
         except:
             tkMessageBox.showerror(message="There is something wrong with the entered value \n Error code: (PEBKAC)")
-        X = int(((self.data.shape[0] * self.data.shape[1] - self.data.shape[1]) / 2) * (PC / 100.))
+            return
+        if X==-1:
+            X=0
+        else:
+            X = int(((self.data.shape[0] * self.data.shape[1] - self.data.shape[1]) / 2) * (PC / 100.))
         self.top_values_cnt.set(int(X))
         if type(self.data) == np.ma.MaskedArray:
             cutoff = np.ma.sort(np.triu(self.data), axis=None, fill_value=0.)[-X]
