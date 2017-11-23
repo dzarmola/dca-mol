@@ -1,0 +1,143 @@
+    def ask_for_correct_ids(self,selected, mapping):
+        self.sequence_selection_window = Tk.Toplevel(self.root)
+        self.sequence_selection_window.wm_title("Specify PDB ids of those sequences/select a file")
+		## header # [pdb] Chain [] [load file] [select loaded] [] Keep similar [] DNA/RNA [Add more]
+		
+		frames = {}
+		entries_vars = {}
+		chain_vars = {}
+		loaded_vars = {}
+		similar_vars = []
+		cnt_vars = []
+		
+		def add_more_structs(vars):
+			
+            idx, id,frame = vars
+			cnt_vars[idx]+=1
+			row = cnt_vars[idx]
+            similar_vars[idx].set(0)
+            entries_vars[idx].append(Tk.StringVar())
+			e = Tk.Entry(f, width=6, textvariable=entries_vars[idx])
+			e.bind('<FocusIn>', on_entry_click)
+            e.bind('<FocusOut>', on_focusout)
+            e.config(fg = 'grey')
+            e.grid(row=row,column=1)
+			Tk.Label(f, text="Chain:").grid(row=row,column=2)
+            chains_vars[idx].append(Tk.StringVar())
+            c=Tk.Entry(f, width=2, textvariable=chains_vars[idx])
+			c.grid(row=row,column=3)
+			
+            filenames_vars[idx].append(Tk.StringVar())
+			fn=Tk.Button(rightCol0, text="Load local file")
+            fn['command'] = lambda idx=idx: self.read_pdb(filenames_vars[idx], filenames[idx])
+            fn.grid(row=row,column=4)
+			
+            if currently_present:
+                loaded_vars[idx] += [Tk.StringVar()]
+                om = Tk.OptionMenu(sbmarCol, loaded_vars[idx], "Select already loaded", *currently_present)
+                om.set("Select already loaded")
+                om.grid(row=row,column=5)
+				
+		def read_in(i, taken_ids):
+            keep_others = similar_vars[i].get()
+            appendix = ""
+            if loaded_vars and loaded_vars[i].get() and loaded_vars[i].get() != "Select already loaded":
+                while "DM_" + loaded_vars[i].get() + appendix in taken_ids:
+                    appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
+                cmd.copy("DM_" + loaded_vars[i].get(), loaded_vars[i].get())
+                mapping_id = ["DM_" + loaded_vars[i].get() + appendix, chains_vars[i].get(), keep_others, False]
+            elif filenames_vars[i].get() and filenames_vars[i].get() != "Load local file":
+                print "Loading from file", id
+                nid = ntpath.splitext(ntpath.basename(filenames_vars[i].get()))[0]
+                while nid + appendix in taken_ids:
+                    appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
+                cmd.load(filenames_vars[i].get(), nid + appendix)  # TODO: obj name as seq
+                mapping_id = [nid + appendix, chains_vars[i].get(), keep_others, False]
+                # mapping[id]=[".".join(filenames_vars[i].get().split("/")[-1].split(".")[:-1]),chains_vars[i].get()]
+                # added = cmd.get_object_list('(all)')[-1]
+                # cmd.split_chains(added)
+            elif entries_vars[i].get():
+                while entries_vars[i].get() + appendix in taken_ids:
+                    appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
+                print "Fetching for", id
+                cmd.fetch(entries_vars[i].get(), entries_vars[i].get() + appendix)
+                mapping_id = [entries_vars[i].get() + appendix, chains_vars[i].get(), keep_others, False]
+            else:
+                print "No selection for ", id
+                mapping_id = None
+            return mapping_id
+		def get_selected(*args):
+            taken_ids = cmd.get_object_list('(all)')
+            for i, id in enumerate(selected):
+                keep_others = similar_vars[i].get() if not id in bonus_structures else False  # TODO opisac to
+                #if keep_others and "." in chains_vars[i].get():
+                #    tkMessageBox.showinfo("Choose wisely",
+                #                          "'Multiple chains' and 'Keep similar chains' options are mutually exclusive!")
+                #    return ### Resigned from multiple chains option
+                mapping_id = read_in(i, taken_ids)
+                if mapping_id is None:
+                    selected[i] = None
+                else:
+                    taken_ids.append(mapping_id[0])
+                    if id in bonus_structures:
+                        all_ids = []
+                        for x in bonus_structures[id]:
+                            mid = read_in(x, taken_ids)
+                            if not mid is None:
+                                taken_ids.append(mid[0])
+                                all_ids.append(mid)
+                        mapping_id[-1] = all_ids
+
+                mapping[id] = mapping_id
+            self.sequence_selection_window.quit()
+            self.sequence_selection_window.destroy()
+			
+		
+		for index, id in enumerate(selected):
+			f = Tk.Frame(master=self.sequence_selection_window)
+			frames.append(f)
+			cnt_vars.append(0)
+			#jako pierwszy prosta pozioma kreska?
+			header = Tk.Entry(f, relief=Tk.FLAT)
+			header.insert(0,id)
+			header.config(state="readonly")
+			header.grid(row=0,column=0)
+			entries_vars[index] = [Tk.StringVar()]
+			e = Tk.Entry(f, width=6, textvariable=entries_vars[index])
+			e.bind('<FocusIn>', on_entry_click)
+            e.bind('<FocusOut>', on_focusout)
+            e.config(fg = 'grey')
+            e.grid(row=0,column=1)
+			Tk.Label(f, text="Chain:").grid(row=0,column=2)
+            chains_vars[index] = [Tk.StringVar()]
+            c=Tk.Entry(f, width=2, textvariable=chains_vars[index])
+			c.grid(row=0,column=3)
+			
+            filenames_vars[index] = [Tk.StringVar()]
+			fn=Tk.Button(rightCol0, text="Load local file")
+            fn['command'] = lambda index=index: self.read_pdb(filenames_vars[index], filenames[index])
+            fn.grid(row=0,column=4)
+			
+            if currently_present:
+                loaded_vars[index] = [Tk.StringVar()]
+                om = Tk.OptionMenu(sbmarCol, loaded_vars[index], "Select already loaded", *currently_present)
+                om.set("Select already loaded")
+                om.grid(row=0,column=5)
+
+            similar_vars.append(Tk.BooleanVar())
+            similar_vars[-1].set(0)
+			if self.overall_mode != 1:
+				ks=Tk.Checkbutton(rightCol1, text="Keep similar chains", variable=keep_gay_utopia_vars[-1])
+				ks.grid(row=0,column=6)
+            #if self.overall_mode == 1:
+            #    keep_gay_utopia[-1]['state'] = Tk.DISABLED
+            a = Tk.Button(rightCol2, text="Add more structures to this seq",
+                      command=lambda vars=(index, id,f): add_more_structs(vars))
+			a.grid(row=0,column=7)
+
+
+
+        #entries[0].focus()
+        sel_button = Tk.Button(master=self.sequence_selection_window, text='Done', command=get_selected)
+        sel_button.grid(column=0, row = len(selected))
+        self.sequence_selection_window.mainloop()
