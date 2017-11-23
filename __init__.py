@@ -212,12 +212,12 @@ class dcaMOL:
                 test.write("Done")
         except IOError:
             if platform.system() == "Linux":
-                self.path = "/tmp/dcaMOL_temp_files"
+                self.path = "/tmp/dcaMOL_temp_files/"
             elif platform.system() == "Windows":
                 home = os.path.expanduser("~")
-                self.path = home+"\dcaMOL_temp_files"
+                self.path = home+"\\dcaMOL_temp_files\\"
             elif platform.system() in ["Darwin", "darwin"]:
-                self.path = "/tmp/dcaMOL_temp_files"
+                self.path = "/tmp/dcaMOL_temp_files/"
             if not os.path.exists(self.path):
                 os.makedirs(self.path)
             with open(self.path + "test_file", "w", 0) as test:
