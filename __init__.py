@@ -652,8 +652,8 @@ class dcaMOL:
         self.canvas.show()
         self.canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
         self.tool_frame = Tk.Frame(self.plot_field)
-        #c = CustomToolbar(self.canvas, self.tool_frame)
-        c = CustomToolbar(self.canvas, self.root)
+        c = CustomToolbar(self.canvas, self.tool_frame)
+        #c = CustomToolbar(self.canvas, self.root)
         c.update()
         self.tool_frame.pack(side=Tk.LEFT)
         #### END PLOT FIELD
