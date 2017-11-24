@@ -60,6 +60,9 @@ def make_a_snowman(starting_struct, further_structs, seqName):
     space = {"resvs": []}  # TODO renumber keeping numbering gaps?
     _lens = []
 
+    newName = [id+chain]
+
+
     cmd.iterate(selection + " and name ca and elem c", "resvs.append(resi)", space=space)
     _lens.append(len(space['resvs']))
     if OTHER_NUMBERING:
@@ -73,6 +76,7 @@ def make_a_snowman(starting_struct, further_structs, seqName):
     for x in further_structs:
         space = {"resvs": []}
         xid, xch = x[:2]
+        newName.append(xid+xch)
         xch = xch.split(".")[0] if xch else cmd.get_chains(xid)[0]
         sel = "({} and c. {} and polymer)".format(xid, xch)
         space = {"resvs": []}  # TODO renumber keeping numbering gaps?
@@ -89,13 +93,14 @@ def make_a_snowman(starting_struct, further_structs, seqName):
             cnt += 1000 - (cnt % 1000)
         selection += " OR " + sel
         _lens.append(len(space['resvs']))
-    cmd.create(seqName, selection, quiet=0)
+    newName = "_".join(newName)
+    cmd.create(newName, selection, quiet=0)
     cmd.get_fastastr(seqName)
     # TODO remove source objects
     for x in [[id]] + further_structs:
         cmd.delete(x[0])
     cmd.alter("(%s)" % seqName, "chain='A'", quiet=0)
-    return _lens
+    return _lens,newName
 
 def mapping(align_sequence,str_sequence, seqName, objId):
 
@@ -497,8 +502,8 @@ class Structure:
         seqName = seqName.replace(" ","_").replace("/","_").replace("\\","_")
         #print "FS:",bool(further_structs)
         if further_structs:
-            _lens = make_a_snowman((objId,chain),further_structs,seqName)
-            objId = seqName
+            _lens,newName = make_a_snowman((objId,chain),further_structs,seqName)
+            objId = newName
             chain="A"
             if splits is not None:
                 splits = [splits,_lens]
