@@ -238,17 +238,17 @@ class dcaMOL:
         self.wait_window_progress = Tk.StringVar()
         self.wait_window_message_loc = Tk.Entry(master=self.wait_window, textvariable=self.wait_window_message,
                                                 state=Tk.DISABLED, disabledforeground="black", justify=Tk.CENTER, width=50)
-        self.wait_window_message_loc.pack()
+        self.wait_window_message_loc.grid(row=0,column=0)
         self.wait_window_progress_loc = Tk.Entry(master=self.wait_window, textvariable=self.wait_window_progress,
                                                  state=Tk.DISABLED, disabledforeground="black", justify=Tk.CENTER, width=50)
-        self.wait_window_progress_loc.pack()
+        self.wait_window_progress_loc.grid(row=1,column=0)
 
         self.window_of_selected_bonds = Tk.Toplevel(self.root)
         self.window_of_selected_bonds.withdraw()
         self.window_of_selected_bonds.wm_title("Shown bonds")
         self.window_of_selected_bonds_text = Tk.StringVar()#Tk.Text(self.window_of_selected_bonds, width=30, state=Tk.DISABLED)
         self.window_of_selected_bonds_text.set("PLACEHOLDER")
-        Tk.Label(self.window_of_selected_bonds, textvariable=self.window_of_selected_bonds_text).pack()
+        Tk.Label(self.window_of_selected_bonds, textvariable=self.window_of_selected_bonds_text).grid(row=0,column=0)
 
 
         self.alignment = Tk.StringVar()
@@ -704,32 +704,32 @@ class dcaMOL:
         popup = Tk.Toplevel(self.root)
 
         upper = Tk.Frame(master=popup)
-        upper.pack(side=Tk.TOP)
-        labels = Tk.Frame(master=upper)
-        labels.pack(side=Tk.LEFT)
-        entries = Tk.Frame(master=upper)
-        entries.pack(side=Tk.LEFT)
+        upper.grid(row=0,column=0,columnspan=2)
+#        labels = Tk.Frame(master=upper)
+#        labels.grid(row=0,column=0)
+#        entries = Tk.Frame(master=upper)
+#        entries.pack(side=Tk.LEFT)
 
-        Tk.Label(master=labels, text="From frame").pack(side=Tk.TOP)
-        Tk.Label(master=labels, text="To frame").pack(side=Tk.TOP)
-        Tk.Label(master=labels, text="Step").pack(side=Tk.TOP)
-        Tk.Label(master=labels, text="Output file").pack(side=Tk.TOP)
+        Tk.Label(master=popup, text="From frame").grid(row=1,column=0)
+        Tk.Label(master=popup, text="To frame").grid(row=2,column=0)
+        Tk.Label(master=popup, text="Step").grid(row=3,column=0)
+        Tk.Label(master=popup, text="Output file").grid(row=4,column=0)
 
         _from_var = Tk.IntVar()
         _from_var.set(1)
-        _from = Tk.Entry(master=entries, width=10, textvariable=_from_var)
-        _from.pack(side=Tk.TOP)
+        _from = Tk.Entry(master=popup, width=10, textvariable=_from_var)
+        _from.grid(row=1,column=1)
         _to_var = Tk.IntVar()
         _to_var.set(self.last_state_var.get())
-        _to = Tk.Entry(master=entries, width=10, textvariable=_to_var)
-        _to.pack(side=Tk.TOP)
+        _to = Tk.Entry(master=popup, width=10, textvariable=_to_var)
+        _to.grid(row=2,column=1)
         _step_var = Tk.IntVar()
         _step_var.set(1 if self.last_state_var.get() <= 100 else 10)
-        _step = Tk.Entry(master=entries, width=10, textvariable=_step_var)
-        _step.pack(side=Tk.TOP)
+        _step = Tk.Entry(master=popup, width=10, textvariable=_step_var)
+        _step.grid(row=3,column=1)
         files = []
-        _go = Tk.Button(master=entries,text='Save as', command=lambda: self.ask_for_save(files))
-        _go.pack(side=Tk.TOP)
+        _go = Tk.Button(master=popup,text='Save as', command=lambda: self.ask_for_save(files))
+        _go.pack.grid(row=4,column=1)
 
         def finish_this(container):
             if not files or files[0] is None:
@@ -741,7 +741,7 @@ class dcaMOL:
             popup.destroy()
 
         run = Tk.Button(master=popup,text="Go!",command=lambda: finish_this(container))
-        run.pack(side=Tk.BOTTOM)
+        run.grid(row=5,column=0,columnspan=2)
         popup.mainloop()
 
 
@@ -1345,7 +1345,7 @@ class dcaMOL:
             #similar_vars[index] = similar_vars.get(index, [])
 
             entries_vars[index] += [Tk.StringVar()]
-            e = Tk.Entry(f, width=6, textvariable=entries_vars[index])
+            e = Tk.Entry(f, width=6, textvariable=entries_vars[index][row])
             e.insert(0, 'PDB ID')
             e.bind('<FocusIn>', self.on_entry_click)
             e.bind('<FocusOut>', self.on_focusout)
@@ -1354,7 +1354,7 @@ class dcaMOL:
             rf.append(e)
             Tk.Label(f, text="Chain:").grid(row=0, column=2)
             chains_vars[index] += [Tk.StringVar()]
-            c = Tk.Entry(f, width=2, textvariable=chains_vars[index])
+            c = Tk.Entry(f, width=2, textvariable=chains_vars[index][row])
             c.grid(row=row, column=3)
             rf.append(c)
             filenames_vars[index] += [(Tk.StringVar(),Tk.StringVar())]
@@ -1365,7 +1365,7 @@ class dcaMOL:
             rf.append(fn)
             if currently_present:
                 loaded_vars[index] += [Tk.StringVar()]
-                om = Tk.OptionMenu(f, loaded_vars[index], "Select already loaded", *currently_present)
+                om = Tk.OptionMenu(f, loaded_vars[index][row], "Select already loaded", *currently_present)
                 om.set("Select already loaded")
                 om.grid(row=row, column=5)
                 rf.append(om)
@@ -1455,6 +1455,7 @@ class dcaMOL:
                     else:
                         return
                 mapping[id] = mapping_id
+            print mapping
             self.sequence_selection_window.quit()
             self.sequence_selection_window.destroy()
 
@@ -1478,10 +1479,10 @@ class dcaMOL:
         self.sequence_splits_window = Tk.Toplevel(self.root)
         self.sequence_splits_window.wm_title("Specify sequence breaks")
         l = Tk.Label(self.sequence_splits_window, text=text)
-        l.pack(side=Tk.TOP)
+        l.grid(row=0,column=0)
         e = Tk.Text(self.sequence_splits_window, width=80)
         e.insert(Tk.END, seq)
-        e.pack(side=Tk.TOP)
+        e.grid(row=1,column=0)
 
         def done():
             results.append(str(e.get("1.0", Tk.END)).split())
@@ -1500,9 +1501,9 @@ class dcaMOL:
             self.sequence_splits_window.destroy()
 
         b = Tk.Button(self.sequence_splits_window, text="OK", command=done)
-        b.pack(side=Tk.TOP)
+        b.grid(row=2,column=0)
         b2 = Tk.Button(self.sequence_splits_window, text="Alternatively: Try your luck - we'll try to guess", command=lucky)
-        b2.pack(side=Tk.TOP)
+        b2.grid(row=3,column=0)
         self.sequence_splits_window.mainloop()
 
     def read_in_alignment(self):
