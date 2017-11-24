@@ -1259,7 +1259,7 @@ class dcaMOL:
         if not file:
             return
         variable.set(file)
-        label['text'] = ntpath.basename(variable.get())  #TODO  unix filenames with backslashes - may fail
+        label.set(ntpath.basename(variable.get()))  #TODO  unix filenames with backslashes - may fail
 
     def on_entry_click(self,event):
         entry = event.widget
@@ -1276,181 +1276,196 @@ class dcaMOL:
             entry.insert(0, 'PDB ID')
             entry.config(fg = 'grey')
 
-    def ask_for_correct_ids(self,selected, mapping):
+    def ask_for_correct_ids(self, selected, mapping):
         self.sequence_selection_window = Tk.Toplevel(self.root)
         self.sequence_selection_window.wm_title("Specify PDB ids of those sequences/select a file")
+        ## header # [pdb] Chain [] [load file] [select loaded] [] Keep similar [] DNA/RNA [Add more]
 
-
-
-        leftCol = Tk.Frame(self.sequence_selection_window)
-        leftCol.pack(side=Tk.LEFT)
-        middleCol0 = Tk.Frame(self.sequence_selection_window)
-        middleCol0.pack(side=Tk.LEFT)
-        middleCol1 = Tk.Frame(self.sequence_selection_window)
-        middleCol1.pack(side=Tk.LEFT)
-        middleCol2 = Tk.Frame(self.sequence_selection_window)
-        middleCol2.pack(side=Tk.LEFT)
-        sbmarCol = Tk.Frame(self.sequence_selection_window)
-        sbmarCol.pack(side=Tk.LEFT)
-        rightCol0 = Tk.Frame(self.sequence_selection_window)
-        rightCol0.pack(side=Tk.LEFT)
-        rightCol1 = Tk.Frame(self.sequence_selection_window)
-        rightCol1.pack(side=Tk.LEFT)
-        rightCol2 = Tk.Frame(self.sequence_selection_window)
-        rightCol2.pack(side=Tk.LEFT)
-        rightCol3 = Tk.Frame(self.sequence_selection_window)
-        rightCol3.pack(side=Tk.LEFT)
-        labels = []
-        entries = []
-        entries_vars = []
-        chains = []
-        chains_vars = []
-        loaded = []
-        loaded_vars = []
-        filenames_vars = []
-        filenames = []
-        keep_gay_utopia = []
-        keep_gay_utopia_vars = []
-        bonus_structures = {}
         currently_present = cmd.get_object_list('(all)')
 
-        def add_more_structs(vars):
-            idx, id = vars
-            keep_gay_utopia_vars[idx].set(0)
-            #labels.append(Tk.Label(leftCol, text=id))
-            labels.append(Tk.Entry(leftCol, relief=Tk.FLAT))
-            labels[-1].insert(0, id)
-            labels[-1].config(state="readonly")
-            labels[-1].pack(side=Tk.TOP)
-            entries_vars.append(Tk.StringVar())
-            entries.append(Tk.Entry(middleCol0, width=6, textvariable=entries_vars[-1]))
-            index = len(entries) - 1
-            entries[-1].pack(side=Tk.TOP)
-            Tk.Label(middleCol1, text="Chain(s):").pack(side=Tk.TOP)
-            chains_vars.append(Tk.StringVar())
-            chains.append(Tk.Entry(middleCol2, width=2, textvariable=chains_vars[-1]))
-            chains[-1].pack(side=Tk.TOP)
-            filenames_vars.append(Tk.StringVar())
+        frames = []
+        entries_vars = {}
+        chains_vars = {}
+        loaded_vars = {}
+        filenames_vars = {}
+        similar_vars = []
+        cnt_vars = []
+        del_butts = [None for x in selected]
 
+        def del_row(vars):
+            frame, index = vars
+            row=cnt_vars[index]
+
+            entries_vars[index].pop()
+            chains_vars[index].pop()
+            filenames_vars[index].pop()
+            if loaded_vars[index]:
+                loaded_vars[index].pop()
+            #similar_vars[index].pop()
+            cnt_vars[index] -= 1
+            if row > 1:
+                print "Moving button from",row,"to",row-1
+                del_butts[index].grid(row=row - 1, column=7,sticky="E")
+            else:
+                print "reMoving button from", row
+                del_butts[index].grid_forget()
+                del_butts[index].destroy()
+                del_butts[index] = None
+
+            rf = frames[index].pop()
+            print rf
+            for item in rf:
+                print item
+                item.grid_forget()
+                item.destroy()
+
+
+
+        def add_row(frame, seqid, index):
+            row = cnt_vars[index]+1
+            cnt_vars[index]+=1
+            rf = []#Tk.Frame(frame)
+            print "Adding row",frame,seqid,index,row
+            f = frame
+            if row == 0:
+                header = Tk.Entry(f, relief=Tk.FLAT)
+                header.insert(0, seqid)
+                header.config(state="readonly")
+                header.grid(row=row, column=0)
+                rf.append(header)
+
+            entries_vars[index] = entries_vars.get(index, [])
+            chains_vars[index] = chains_vars.get(index, [])
+            filenames_vars[index] = filenames_vars.get(index, [])
+            loaded_vars[index] = loaded_vars.get(index, [])
+            #similar_vars[index] = similar_vars.get(index, [])
+
+            entries_vars[index] += [Tk.StringVar()]
+            e = Tk.Entry(f, width=6, textvariable=entries_vars[index])
+            e.insert(0, 'PDB ID')
+            e.bind('<FocusIn>', self.on_entry_click)
+            e.bind('<FocusOut>', self.on_focusout)
+            e.config(fg='grey')
+            e.grid(row=row, column=1)
+            rf.append(e)
+            Tk.Label(f, text="Chain:").grid(row=0, column=2)
+            chains_vars[index] += [Tk.StringVar()]
+            c = Tk.Entry(f, width=2, textvariable=chains_vars[index])
+            c.grid(row=row, column=3)
+            rf.append(c)
+            filenames_vars[index] += [(Tk.StringVar(),Tk.StringVar())]
+            filenames_vars[index][row][1].set("Load local file")
+            fn = Tk.Button(f, textvariable=filenames_vars[index][row][1])
+            fn['command'] = lambda index=index: self.read_pdb(*filenames_vars[index][row])
+            fn.grid(row=row, column=4)
+            rf.append(fn)
             if currently_present:
-                loaded_vars.append(Tk.StringVar())
-                loaded.append(Tk.OptionMenu(sbmarCol, loaded_vars[-1], "Select already loaded", *currently_present))
-                loaded_vars[-1].set("Select already loaded")
-                loaded[-1].pack(side=Tk.TOP)
+                loaded_vars[index] += [Tk.StringVar()]
+                om = Tk.OptionMenu(f, loaded_vars[index], "Select already loaded", *currently_present)
+                om.set("Select already loaded")
+                om.grid(row=row, column=5)
+                rf.append(om)
+            if row == 0:
+                similar_vars.append(Tk.BooleanVar())
+                similar_vars[-1].set(0)
+                if self.overall_mode != 1:
+                    ks = Tk.Checkbutton(f, text="Keep chains with >90% identity", variable=similar_vars[-1])
+                    ks.grid(row=row, column=6)
+                    rf.append(ks)
+            else:
+                similar_vars[index].set(0)
+            # if self.overall_mode == 1:
+            #    keep_gay_utopia[-1]['state'] = Tk.DISABLED
+            if row == 0:
+                a = Tk.Button(f, text="Add more structures to this seq",
+                              command=lambda vars=(f, seqid, index): add_row(*vars))
+                a.grid(row=row, column=7)
+            elif row == 1:
+                a = Tk.Button(f, text="Delete this row",
+                              command=lambda vars=(f, index): del_row(vars))
+                a.grid(row=row, column=7,sticky="E")
+                del_butts[index] = a
+            else:
+                del_butts[index].grid(row=row, column=7,sticky="E")
+            #row_frame.grid(row=row,column=0)
+            frames[index].append(rf)
 
-            filenames.append(Tk.Button(rightCol0, text="Load local file"))
-            filenames[-1]['command'] = lambda index=index: self.read_pdb(filenames_vars[index], filenames[index])
-            filenames[-1].pack(side=Tk.TOP)
-
-            keep_gay_utopia_vars.append(Tk.BooleanVar())
-            keep_gay_utopia_vars[-1].set(0)
-            keep_gay_utopia.append(
-                Tk.Checkbutton(rightCol1, text="Keep chains with >90% identity", variable=keep_gay_utopia_vars[-1]))
-            if self.overall_mode == 1:
-                keep_gay_utopia[-1]['state'] = Tk.DISABLED
-            keep_gay_utopia[-1].pack(side=Tk.TOP)
-            Tk.Button(rightCol2, text="Add more structures to this seq",
-                      command=lambda vars=(index, id): add_more_structs(vars)).pack(side=Tk.TOP)
-            bonus_structures[id] = bonus_structures.get(id, []) + [index]
-
-        def read_in(i, taken_ids):
-            keep_others = keep_gay_utopia_vars[i].get()
+        def read_one_row(i, row_num):
+            taken_ids = cmd.get_object_list('(all)')
+            keep_others = similar_vars[i].get()
             appendix = ""
-            if loaded_vars and loaded_vars[i].get() and loaded_vars[i].get() != "Select already loaded":
-                while "DM_" + loaded_vars[i].get() + appendix in taken_ids:
+            chain = chains_vars[i][row_num].get()
+            if loaded_vars[i] and loaded_vars[i][row_num].get() != "Select already loaded":
+                lv = loaded_vars[i][row_num].get()
+                name = "DM_" + lv + appendix
+                while name in taken_ids:
                     appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
-                cmd.copy("DM_" + loaded_vars[i].get(), loaded_vars[i].get())
-                mapping_id = ["DM_" + loaded_vars[i].get() + appendix, chains_vars[i].get(), keep_others, False]
-            elif filenames_vars[i].get() and filenames_vars[i].get() != "Load local file":
+                    name = "DM_" + lv + appendix
+                cmd.copy(name, lv)
+                mapping_id = [name, chain, keep_others, False]
+            elif filenames_vars[i][row_num][0].get() not in ["Load local file", ""]:
                 print "Loading from file", id
-                nid = ntpath.splitext(ntpath.basename(filenames_vars[i].get()))[0]
+                nid = ntpath.splitext(ntpath.basename(filenames_vars[i][row_num][0].get()))[0]
                 while nid + appendix in taken_ids:
                     appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
-                cmd.load(filenames_vars[i].get(), nid + appendix)  # TODO: obj name as seq
-                mapping_id = [nid + appendix, chains_vars[i].get(), keep_others, False]
+                cmd.load(filenames_vars[i][row_num][0].get(), nid + appendix)  # TODO: obj name as seq
+                mapping_id = [nid + appendix, chain, keep_others, False]
                 # mapping[id]=[".".join(filenames_vars[i].get().split("/")[-1].split(".")[:-1]),chains_vars[i].get()]
                 # added = cmd.get_object_list('(all)')[-1]
                 # cmd.split_chains(added)
-            elif entries_vars[i].get():
-                while entries_vars[i].get() + appendix in taken_ids:
+            elif entries_vars[i][row_num].get():
+                while entries_vars[i][row_num].get() + appendix in taken_ids:
                     appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
-                print "Fetching for", id
-                cmd.fetch(entries_vars[i].get(), entries_vars[i].get() + appendix)
-                mapping_id = [entries_vars[i].get() + appendix, chains_vars[i].get(), keep_others, False]
+                print "Fetching for", i
+                cmd.fetch(entries_vars[i][row_num].get(), entries_vars[i][row_num].get() + appendix)
+                mapping_id = [entries_vars[i][row_num].get() + appendix, chain, keep_others, False]
             else:
-                print "No selection for ", id
+                print "No selection for ", i, row_num
                 mapping_id = None
             return mapping_id
 
         def get_selected(*args):
-            taken_ids = cmd.get_object_list('(all)')
             for i, id in enumerate(selected):
-                keep_others = keep_gay_utopia_vars[i].get() if not id in bonus_structures else False  # TODO opisac to
-                if keep_others and "." in chains_vars[i].get():
+                if similar_vars[i].get() and cnt_vars[i] != 0:
                     tkMessageBox.showinfo("Choose wisely",
-                                          "'Multiple chains' and 'Keep similar chains' options are mutually exclusive!")
+                                          "You can't have both multiple structure per sequence and 'Keep similar chains' enabled at the same time!")
                     return
-                mapping_id = read_in(i, taken_ids)
-                if mapping_id is None:
-                    selected[i] = None
-                else:
-                    taken_ids.append(mapping_id[0])
-                    if id in bonus_structures:
-                        all_ids = []
-                        for x in bonus_structures[id]:
-                            mid = read_in(x, taken_ids)
-                            if not mid is None:
-                                taken_ids.append(mid[0])
-                                all_ids.append(mid)
-                        mapping_id[-1] = all_ids
 
+                mapping_id = []
+                for x in xrange(cnt_vars[i] + 1):
+                    row = read_one_row(i, x)
+                    if row is not None:
+                        mapping_id.append(row)
+                if len(mapping_id) == 1:
+                    mapping_id = mapping_id[0]
+                    if similar_vars[i].get():
+                        mapping_id[2] = 1
+                elif len(mapping_id) > 1:
+                    mapping_id[0][3] = mapping_id[1:]
+                    mapping_id = mapping_id[0]
+                else:
+                    if tkMessageBox.askokcancel("No selection",
+                                                "There is no valid structure specified for {}.\n Do you wish to continue regardless?".format(
+                                                        id)):
+                        selected[i] = None
+                    else:
+                        return
                 mapping[id] = mapping_id
             self.sequence_selection_window.quit()
             self.sequence_selection_window.destroy()
 
         for index, id in enumerate(selected):
-            #labels.append(Tk.Label(leftCol, text=id))
-            labels.append(Tk.Entry(leftCol, relief=Tk.FLAT))
-            labels[-1].insert(0,id)
-            labels[-1].config(state="readonly")
-            labels[-1].pack(side=Tk.TOP)
-            entries_vars.append(Tk.StringVar())
-            entries.append(Tk.Entry(middleCol0, width=6, textvariable=entries_vars[index]))
-            entries[-1].bind('<FocusIn>', self.on_entry_click)
-            entries[-1].bind('<FocusOut>', self.on_focusout)
-            entries[-1].config(fg = 'grey')
-            entries[-1].pack(side=Tk.TOP)
-            Tk.Label(middleCol1, text="Chain(s):").pack(side=Tk.TOP)
-            chains_vars.append(Tk.StringVar())
-            chains.append(Tk.Entry(middleCol2, width=2, textvariable=chains_vars[index]))
-            chains[-1].pack(side=Tk.TOP)
-            filenames_vars.append(Tk.StringVar())
+            f = Tk.Frame(master=self.sequence_selection_window)
+            frames.append([])
+            cnt_vars.append(-1)
+            # jako pierwszy prosta pozioma kreska?
+            print index,id
+            add_row(f, id, index)
+            f.grid(row=index,column=0)
 
-            if currently_present:
-                loaded_vars.append(Tk.StringVar())
-                loaded.append(Tk.OptionMenu(sbmarCol, loaded_vars[index], "Select already loaded", *currently_present))
-                loaded_vars[-1].set("Select already loaded")
-                loaded[-1].pack(side=Tk.TOP)
-
-            filenames.append(Tk.Button(rightCol0, text="Load local file"))
-            filenames[-1]['command'] = lambda index=index: self.read_pdb(filenames_vars[index], filenames[index])
-            filenames[-1].pack(side=Tk.TOP)
-
-            keep_gay_utopia_vars.append(Tk.BooleanVar())
-            keep_gay_utopia_vars[index].set(0)
-            keep_gay_utopia.append(
-                Tk.Checkbutton(rightCol1, text="Keep similar chains", variable=keep_gay_utopia_vars[index]))
-            keep_gay_utopia[-1].pack(side=Tk.TOP)
-            if self.overall_mode == 1:
-                keep_gay_utopia[-1]['state'] = Tk.DISABLED
-            Tk.Button(rightCol2, text="Add more structures to this seq",
-                      command=lambda vars=(index, id): add_more_structs(vars)).pack(side=Tk.TOP)
-
-
-
-        #entries[0].focus()
+        # entries[0].focus()
         sel_button = Tk.Button(master=self.sequence_selection_window, text='Done', command=get_selected)
-        sel_button.pack(side=Tk.BOTTOM)
+        sel_button.grid(column=0, row=len(selected))
         self.sequence_selection_window.mainloop()
 
     def get_sequence_splits_for_structures(self,id, seq, mapid, results):
