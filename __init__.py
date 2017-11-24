@@ -651,10 +651,12 @@ class dcaMOL:
         self.canvas = FigureCanvasTkAgg(self.FIGURE, master=self.plot_field)
         self.canvas.show()
         self.canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
-        self.canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
-        #c = CustomToolbar(self.canvas, self.plot_field)
-        c = CustomToolbar(self.canvas, self.root)
+        self.tool_frame = Tk.Frame(self.plot_field)
+        c = CustomToolbar(self.canvas, self.tool_frame)
+        #c = CustomToolbar(self.canvas, self.root)
         c.update()
+        self.tool_frame.pack(side=Tk.LEFT)
+        #### END PLOT FIELD
 
         #### END PLOT FIELD
 
