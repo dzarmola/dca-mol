@@ -1236,21 +1236,25 @@ class dcaMOL:
     def ask_for_structures(self,headers, selected):
         self.sequence_selection_window = Tk.Toplevel(self.root)
         self.sequence_selection_window.title("Select")
-        Tk.Label(master=self.sequence_selection_window,text="For which sequence(s) from the alignment do you want to assign a structure?").grid(row=0,column=0)
+        Tk.Label(master=self.sequence_selection_window,text="For which sequence(s) from the alignment do you want to assign a structure?").grid(row=0,column=0,columnspan=2)
         sequence_selection = Tk.Listbox(self.sequence_selection_window, selectmode='multiple', exportselection=0,width=max(len(x) for x in headers))
-        sequence_selection.grid(row=1,column=0)
+        sequence_selection.grid(row=1,column=0,columnspan=2)
         for header in headers:
             sequence_selection.insert(Tk.END, header)
 
-        def get_selected(*args):
+        def get_selected(is_rna,*args):
+            if is_rna:
+                self.is_rna.set(1)
             items = map(int, sequence_selection.curselection())
             for i in items:
                 selected.append(sequence_selection.get(i))
             self.sequence_selection_window.quit()
             self.sequence_selection_window.destroy()
 
-        sel_button = Tk.Button(master=self.sequence_selection_window, text='Done', command=get_selected)
-        sel_button.grid(row=2,column=0)
+        sel_button_protein = Tk.Button(master=self.sequence_selection_window, text='Proceed\n(protein)', command=lambda : get_selected(0))
+        sel_button_rna = Tk.Button(master=self.sequence_selection_window, text='Proceed\n(RNA/DNA)', command=lambda : get_selected(1))
+        sel_button_protein.grid(row=2,column=0)
+        sel_button_rna.grid(row=2, column=1)
         self.sequence_selection_window.mainloop()
 
     def read_pdb(self,variable, label):
@@ -2480,16 +2484,16 @@ class dcaMOL:
         self.current_cursor_position_X.set("% 5d" % actualX if actualX is not None else "  NaN")
         self.current_cursor_position_Y.set("% 5d" % actualY if actualY is not None else "  NaN")
 
-    def guess_if_protein(self,data):
+    """def guess_if_protein(self,data):
         allowed = "actugACTUGnN.-"
-        return any(set(allowed)!=set(x[0]+allowed) for x in data)
+        return any(set(allowed)!=set(x[0]+allowed) for x in data)"""
 
-    def confirm_if_rna(self):
+    """def confirm_if_rna(self):
         rna_win = Tk.Toplevel(self.root)
         Tk.Label(rna_win,text="Our guess is that you are working on RNA/DNA - is that correct?").pack()
         Tk.Button(rna_win,text="Yes",command=lambda: [self.is_rna.set(1), rna_win.quit(), rna_win.destroy()]).pack()
         Tk.Button(rna_win, text="No", command=lambda: [self.is_rna.set(0), rna_win.quit(),rna_win.destroy()]).pack()
-        rna_win.mainloop()
+        rna_win.mainloop()"""
 
 
     def start_plot(self, self_mode, *args):
@@ -2503,10 +2507,10 @@ class dcaMOL:
         if self.alignment.get():
             importantSeqs = self.read_in_alignment()
 
-            self.is_rna.set(not self.guess_if_protein(importantSeqs.values()))
+            #self.is_rna.set(not self.guess_if_protein(importantSeqs.values()))
 
-            if self.is_rna.get():
-                self.confirm_if_rna()
+            #if self.is_rna.get():
+            #    self.confirm_if_rna()
             if self.is_rna.get():
                 dm.Structure.isRNA = True
                 dm.Structure.mode = dm.Structure.available_modes_rna[0]
