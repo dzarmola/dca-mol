@@ -2680,7 +2680,7 @@ class dcaMOL:
         wid = self.root.winfo_width()
         #print hei,wid
 
-        self.root.minsize(851,768)
+        self.root.minsize(775,700)
         self.root.aspect(620, 530, 620, 530)
 
 #        self.root.bind('<Configure>', self.resize)
