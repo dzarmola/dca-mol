@@ -639,7 +639,7 @@ class dcaMOL:
 
         ######## PLOT FIELD
         # DO THE PLOT
-        self.FIGURE = plt.figure(figsize=(8, 8), dpi=self.default_plot_dpi)
+        self.FIGURE = plt.figure(figsize=(2, 2), dpi=self.default_plot_dpi)
         plt.subplots_adjust(left=0.05, bottom=0.03, right=1, top=1, wspace=0, hspace=0)
         self.aplot = self.FIGURE.add_subplot(111)
         self.aplot.set_aspect('equal')
