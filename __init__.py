@@ -1321,18 +1321,18 @@ class dcaMOL:
             #similar_vars[index].pop()
             cnt_vars[index] -= 1
             if row > 1:
-                print "Moving button from",row,"to",row-1
+#                print "Moving button from",row,"to",row-1
                 del_butts[index].grid(row=row - 1, column=7,sticky="E")
             else:
-                print "reMoving button from", row
+#                print "reMoving button from", row
                 del_butts[index].grid_forget()
                 del_butts[index].destroy()
                 del_butts[index] = None
 
             rf = frames[index].pop()
-            print rf
+#            print rf
             for item in rf:
-                print item
+#                print item
                 item.grid_forget()
                 item.destroy()
 
@@ -1342,7 +1342,7 @@ class dcaMOL:
             row = cnt_vars[index]+1
             cnt_vars[index]+=1
             rf = []#Tk.Frame(frame)
-            print "Adding row",frame,seqid,index,row
+#            print "Adding row",frame,seqid,index,row
             f = frame
             if row == 0:
                 header = Tk.Entry(f, relief=Tk.FLAT)
@@ -1468,7 +1468,7 @@ class dcaMOL:
                     else:
                         return
                 mapping[id] = mapping_id
-            print mapping
+#            print mapping
             self.sequence_selection_window.quit()
             self.sequence_selection_window.destroy()
 
@@ -1477,7 +1477,7 @@ class dcaMOL:
             frames.append([])
             cnt_vars.append(-1)
             # jako pierwszy prosta pozioma kreska?
-            print index,id
+#            print index,id
             add_row(f, id, index)
             f.grid(row=index,column=0)
 
@@ -2005,7 +2005,7 @@ class dcaMOL:
         if (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):
             TPrate = (len(self.data2[np.triu(self.data2) == 1.]),
                       len(self.data2[np.triu(self.data2) == 0.1]))  # TP,FP  ## TODO co zrobic z interchain?
-            print "TPRATE", TPrate, sum(TPrate)
+#            print "TPRATE", TPrate, sum(TPrate)
             self.TPrate.set("%5.2f%%" % (TPrate[0] * 100. / sum(TPrate)))
             self.TP_frame.grid(column=1, row=0, padx=10)
         else:
@@ -2017,7 +2017,7 @@ class dcaMOL:
                         #print x,y,self.data[x][y]
                         TPrate+=(type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get() and type(self.data[y][x]) != np.ma.core.MaskedConstant and self.data[y][x]>0)
                         all+= (type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get() and type(self.data[y][x]) != np.ma.core.MaskedConstant)
-                print "TPRATE",TPrate,all
+#                print "TPRATE",TPrate,all
                 self.TPrate.set("%5.2f%%" % (TPrate*100./all))
                                 #(TPrate*100./len(self.data[np.triu(self.data)>self.slider_min.get()])))
                 self.TP_frame.grid(column=1, row=0, padx=10)
@@ -2116,10 +2116,10 @@ class dcaMOL:
             if x=="L": return "R"
             else: return "L"
 
-        print "selected",self.SELECTED_REGIONS
+#        print "selected",self.SELECTED_REGIONS
         for i,reg in enumerate(self.SELECTED_REGIONS):
             self.SELECTED_REGIONS[i] = list(reg[:-1])+[flip(reg[-1])]
-        print "new selected", self.SELECTED_REGIONS
+#        print "new selected", self.SELECTED_REGIONS
         for patch in self.SELECTED_REGIONS: ## TODO only draws on top
             self.draw_selected_patch(patch)
         self.canvas.draw()
@@ -2251,11 +2251,11 @@ class dcaMOL:
         pass
 
     def add_pymol_bond(self,res1, res2, color, obj='', mode=0):
-        print "Adding?",mode, obj
+#        print "Adding?",mode, obj
         if mode == 0:
             self.add_pymol_bond_to_object_intra(res1, res2, color, obj)
         elif len(obj[1])>1:
-            print "Will add inter"
+#            print "Will add inter"
             self.add_pymol_bond_to_object_inter(res1, res2, color, obj)
 
     def bonds_in_patches(self, X, Y, structures=None, mode=0):
@@ -2298,7 +2298,7 @@ class dcaMOL:
                     if not sx or not sy: continue
                     color = self.get_bond_color(value)
 #                    color = cmap(value / scale) if cmap else self.binaryColormapColor(value)
-                    print "Should add",sx,sy,color
+#                    print "Should add",sx,sy,color
                     self.add_pymol_bond(sx, sy, color, (structure.objId, structure.chain_list, structure.chain_map, structure.chain_idx_ref), mode=mode)
         if single:
             self.update_list_of_bonds()
@@ -2329,9 +2329,9 @@ class dcaMOL:
 
     def draw_selected_patch(self, patch):
         X, Y, typ = patch
-        print "drawing selected patch"
-        print X
-        print Y
+#        print "drawing selected patch"
+#        print X
+#        print Y
         X = map(int,X)
         Y = map(int,Y)
 
@@ -2371,10 +2371,10 @@ class dcaMOL:
         else:
             selections = map(lambda x: x[0],selections)
 
-        print "selections",selections
+#        print "selections",selections
         X = selections[0]
         Y = selections[1]
-        print "pre", X,Y
+#        print "pre", X,Y
         if self.restrict_to_structure_var.get():
             X = map(lambda x: structure.translations.pdb2structseq[x],X)
             Y = map(lambda x: structure.translations.pdb2structseq[x],Y)
@@ -2390,10 +2390,10 @@ class dcaMOL:
             return
         X=[X[0],X[-1]]
         Y=[Y[0],Y[-1]]
-        print "post", X, Y
-        print self.SELECTED_REGIONS
+#        print "post", X, Y
+#        print self.SELECTED_REGIONS
         self.SELECTED_REGIONS = [(X, Y, mode)]
-        print self.SELECTED_REGIONS
+#        print self.SELECTED_REGIONS
         if not self.HELD_CTRL.get():
             self.clear_pymol_bonds()
             for line in self.AXLINES:
