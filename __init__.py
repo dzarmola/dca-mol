@@ -9,7 +9,7 @@ IMPRT_ERR = 0
 import platform
 import sys
 import helper_functions as hf
-
+import getpass
 #SPLASHES
 #1: generic/open-source
 #2: evaluation
@@ -195,6 +195,9 @@ class dcaMOL:
         self.app = app
         self.parent = app.root
 
+        self.user = "".join(getpass.getuser().split())
+
+
         self.path = "{}/temp/".format(os.path.dirname(os.path.realpath(__file__)))
         self.default_cmap = "gist_ncar"
         self.SHOW_INTER_AS_VALENCE = False
@@ -220,7 +223,12 @@ class dcaMOL:
                 self.path = "/tmp/dcaMOL_temp_files/"
             if not os.path.exists(self.path):
                 os.makedirs(self.path)
-            with open(self.path + "test_file", "w", 0) as test:
+            try:
+                with open(self.path + "test_file", "w", 0) as test:
+                    test.write("Done")
+            except IOError:
+                self.path = self.path.strip("\\").strip("/") + "_" + self.user+"/"
+                with open(self.path + "test_file", "w", 0) as test:
                     test.write("Done")
 
 
@@ -651,12 +659,9 @@ class dcaMOL:
         self.canvas = FigureCanvasTkAgg(self.FIGURE, master=self.plot_field)
         self.canvas.show()
         self.canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
-        self.tool_frame = Tk.Frame(self.plot_field)
-        c = CustomToolbar(self.canvas, self.tool_frame)
-        #c = CustomToolbar(self.canvas, self.root)
+        self.canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
+        c = CustomToolbar(self.canvas, self.plot_field)
         c.update()
-        self.tool_frame.pack(side=Tk.LEFT)
-        #### END PLOT FIELD
 
         #### END PLOT FIELD
 
