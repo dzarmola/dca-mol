@@ -1047,12 +1047,13 @@ class dcaMOL:
         else:
             return
         self._delete_temp_files()
+        self.clear_pymol_bonds()
         self.root.quit()  # stops mainloop
         self.root.destroy()  # this is necessary on Windows to prevent
-        #if parent:
-        #    self.parent.quit()
-        #    self.parent.destroy()
-        #sys.exit(0)
+        if parent:
+            self.parent.quit()
+            self.parent.destroy()
+            sys.exit(0)
         # Fatal Python Error: PyEval_RestoreThread: NULL tstate
 
     def _reset(self):
@@ -1117,7 +1118,8 @@ class dcaMOL:
         for structure in self.STRUCTURES:
             cmd.delete(structure.objId)
             self.STRUCTURES = []
-
+        self.clear_pymol_bonds()
+        self.SELECTED_REGIONS = []
 
         #self.loader_window.deiconify()
         self.loader_window.destroy()
@@ -2694,7 +2696,7 @@ class dcaMOL:
 
 #        self.root.bind('<Configure>', self.resize)
 
-#        self.root.mainloop()
+        self.root.mainloop()
     def resize(self, event):
         #print "Resizing",event.width, event.height
         hei = self.root.winfo_height()
