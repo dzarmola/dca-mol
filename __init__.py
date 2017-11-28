@@ -707,8 +707,8 @@ class dcaMOL:
 
 
 
-        self.root.protocol("WM_DELETE_WINDOW", lambda: self._on_closing(False))
-        self.parent.protocol("WM_DELETE_WINDOW", lambda: self._on_closing(True))
+        self.root.protocol("WM_DELETE_WINDOW", lambda: self._on_closing(parent=False))
+        #self.parent.protocol("WM_DELETE_WINDOW", lambda: self._on_closing(parent=True))
 
         self.dcaMOL_main()
 
@@ -1039,8 +1039,8 @@ class dcaMOL:
 
     def _quit(self,asked=False,parent=False):
         if parent:
-            self.parent.quit()
             self.parent.destroy()
+            self.parent.quit()
             return
         if asked or tkMessageBox.askokcancel("Quit", "Do you want to quit?"):
             pass
@@ -1050,13 +1050,14 @@ class dcaMOL:
         self.clear_pymol_bonds()
         self.root.quit()  # stops mainloop
         self.root.destroy()  # this is necessary on Windows to prevent
-        if parent:
-            self.parent.quit()
-            self.parent.destroy()
-            sys.exit(0)
         # Fatal Python Error: PyEval_RestoreThread: NULL tstate
 
+
     def _reset(self):
+        self._quit(asked=True)
+        dcaMOL(self.app,self.discores.get(),self.alignment.get())
+
+    def _reset_old(self):
         print "Resetting DCA-MOL..."
         self.show_bond_selection.trace_vdelete(*self.show_bond_selection.trace_vinfo()[0])
         self.map_structure_mode.trace_vdelete(*self.map_structure_mode.trace_vinfo()[0])
@@ -1191,6 +1192,12 @@ class dcaMOL:
         but_ld_label = Tk.StringVar()
         but_ld_label.set("Load DI scores")
 
+        def shorten(tk_var):
+            fname = ntpath.basename(tk_var.get())
+            if len(fname) > 15:
+                fname = fname[:10] + "(...)"
+            return fname
+
         def load_alignment(*args):
             file = tkFileDialog.askopenfilename(parent=root, filetypes=[('MSA files', '*.fa *.fasta *.msa *txt'),
                                                                                ('All files', '.*')],
@@ -1199,10 +1206,7 @@ class dcaMOL:
                 return
             self.alignment.set(file)
             print "Alignment scores will be read from:", self.alignment.get()
-            fname = ntpath.basename(self.alignment.get())
-            if len(fname)>15:
-                fname=fname[:10]+"(...)"
-            but_la_label.set("Load alignment from {}".format(fname))
+            but_la_label.set("Load alignment from {}".format(shorten(self.alignment)))
             if self.discores.get() and self.alignment.get():
                 starter0.config(state="normal")
                 starter1.config(state="normal")
@@ -1213,10 +1217,7 @@ class dcaMOL:
             if not file:
                 return
             self.discores.set(file)
-            fname=ntpath.basename(self.discores.get())
-            if len(fname)>15:
-                fname=fname[:10]+"(...)"
-            but_ld_label.set("Load DI scores from {}".format(fname))
+            but_ld_label.set("Load DI scores from {}".format(shorten(self.discores)))
             print "DI scores will be read from:",self.discores.get()
             if self.discores.get() and self.alignment.get():
                 starter0.config(state="normal")
@@ -1243,8 +1244,8 @@ class dcaMOL:
         starter1.grid(row=2,column=1)
 
         if self.alignment.get() and self.discores.get():
-            but_la_label.set("Load alignment from {}".format(ntpath.basename(self.alignment.get())))
-            but_ld_label.set("Load DI scores from {}".format(ntpath.basename(self.discores.get())))
+            but_la_label.set("Load alignment from {}".format(shorten(self.alignment)))
+            but_ld_label.set("Load DI scores from {}".format(shorten(self.discores)))
             starter0.config(state="normal")
             starter1.config(state="normal")
 
@@ -1381,7 +1382,7 @@ class dcaMOL:
             if currently_present:
                 loaded_vars[index] += [Tk.StringVar()]
                 om = Tk.OptionMenu(f, loaded_vars[index][row], "Select already loaded", *currently_present)
-                om.set("Select already loaded")
+                loaded_vars[index][-1].set("Select already loaded")
                 om.grid(row=row, column=5)
                 rf.append(om)
             if row == 0:

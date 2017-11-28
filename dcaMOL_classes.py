@@ -551,7 +551,7 @@ class Structure:
         self.current_state = 1
 
         if already_there:
-            cmd.hide("",objId.strip("DM_"))
+            cmd.hide("everything",objId.strip("DM_"))
         else:
             preset.pretty(self.objId)
             preset.pretty("(%s and %s)"%(self.objId,self.chain))
