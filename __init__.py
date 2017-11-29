@@ -256,9 +256,15 @@ class dcaMOL:
         self.window_of_selected_bonds = Tk.Toplevel(self.root)
         self.window_of_selected_bonds.withdraw()
         self.window_of_selected_bonds.wm_title("Shown bonds")
-        self.window_of_selected_bonds_text = Tk.StringVar()#Tk.Text(self.window_of_selected_bonds, width=30, state=Tk.DISABLED)
-        self.window_of_selected_bonds_text.set("PLACEHOLDER")
-        Tk.Label(self.window_of_selected_bonds, textvariable=self.window_of_selected_bonds_text).grid(row=0,column=0)
+        self.window_of_selected_bonds_text = Tk.Text(self.window_of_selected_bonds, relief=Tk.FLAT,width=34)
+        self.window_of_selected_bonds_text.insert('1.0', "PLACEHOLDER")
+        #self.window_of_selected_bonds_text.bind('<Control-c>', lambda *args: self.window_of_selected_bonds_text.selection_get())
+        self.window_of_selected_bonds.bind('<Control-c>', lambda *args: (self.root.clipboard_clear(),self.root.clipboard_append(self.window_of_selected_bonds_text.selection_get())))
+        self.window_of_selected_bonds_text.config(state="disabled")
+        self.window_of_selected_bonds_text.grid(row=0,column=0)
+        #self.window_of_selected_bonds_text = Tk.StringVar()#Tk.Text(self.window_of_selected_bonds, width=30, state=Tk.DISABLED)
+        #self.window_of_selected_bonds_text.set("PLACEHOLDER")
+        #Tk.Label(self.window_of_selected_bonds, textvariable=self.window_of_selected_bonds_text).grid(row=0,column=0)
 
 
         self.alignment = Tk.StringVar()
@@ -1144,10 +1150,11 @@ class dcaMOL:
 
     def _save(self):
         #exts = {0:".png",1:".svg",2:".eps"}
-        ftypes = [('PGF code for LaTeX', '*.pgf'), ('Scalable Vector Graphics', '*.svgz'), \
+        ftypes = [('Portable Network Graphics', '*.png'), ('PGF code for LaTeX', '*.pgf'),\
+                  ('Scalable Vector Graphics', '*.svgz'), \
                   ('Tagged Image File Format', '*.tiff'), ('Joint Photographic Experts Group', '*.jpg'), \
                   ('Raw RGBA bitmap', '*.raw'), ('Joint Photographic Experts Group', '*.jpeg'), \
-                  ('Portable Network Graphics', '*.png'), ('Postscript', '*.ps'), ('Scalable Vector Graphics', '*.svg'), \
+                   ('Postscript', '*.ps'), ('Scalable Vector Graphics', '*.svg'), \
                   ('Encapsulated Postscript', '*.eps'), ('Raw RGBA bitmap', '*.rgba'), \
                   ('Portable Document Format', '*.pdf'), ('Tagged Image File Format', '*.tif')]
         plik = tkFileDialog.asksaveasfilename(filetypes=ftypes)
@@ -1826,7 +1833,10 @@ class dcaMOL:
         else:
             self.window_of_selected_bonds.withdraw()
     def update_list_of_bonds(self):
-        self.window_of_selected_bonds_text.set("")
+        #self.window_of_selected_bonds_text.set("")
+        self.window_of_selected_bonds_text.config(state=Tk.NORMAL)
+        self.window_of_selected_bonds_text.delete('1.0',Tk.END)
+        print "Updating"
         def get_res(s):
             try:
                 i = s.split("i. ")[1].split()[0]
@@ -1844,7 +1854,9 @@ class dcaMOL:
                 text+="\t".join(map(get_res, x[:2]))+"\n"
         #text += "\n".join( "\t".join(map(get_res, x[:2])) for x in self.DRAWN_BONDS)
         #print text
-        self.window_of_selected_bonds_text.set(text[:-1])#.insert(Tk.END,text)
+        #self.window_of_selected_bonds_text.set(text[:-1])#.insert(Tk.END,text)
+        self.window_of_selected_bonds_text.insert('1.0', text)
+        self.window_of_selected_bonds_text.config(state="disabled")
 
 
     def draw_selected_from_pymol(self):
@@ -1871,7 +1883,10 @@ class dcaMOL:
     def comparison_mode_engaged(self,*args):
         self.clear_pymol_bonds()
         self.SELECTED_REGIONS=[]
-        self.window_of_selected_bonds_text.set("")
+        #self.window_of_selected_bonds_text.set("")
+        self.window_of_selected_bonds_text.config(state=Tk.NORMAL)
+        self.window_of_selected_bonds_text.delete('1.0',Tk.END)
+        self.window_of_selected_bonds_text.config(state="disabled")
         #if self.comp_mode.get():
         #    self.spin_comp_distance.pack(side=Tk.TOP)
         #    self.menu_atom_mode.pack(side=Tk.TOP)
