@@ -738,7 +738,7 @@ class Structure:
                 for a in model.atom:
                     residues[a.resi] = residues.get(a.resi, []) + ([a.resn[-1],a.coord] if a.name != "C1'" else [])
                 # print residues
-                lista = sorted(residues.keys())
+                lista = sorted(residues.keys(),key=lambda x: int(x))
                 ll = len(lista)
                 for i in xrange(ll - 1, -1, -1):
                     for j in xrange(i - 1, -1, -1):
@@ -765,7 +765,7 @@ class Structure:
                 for a in model.atom:
                     residues[a.resi] = residues.get(a.resi, []) + [a.coord]
 
-                lista = sorted(residues.keys())
+                lista = sorted(residues.keys(),key=lambda x: int(x))
                 ll = len(lista)
                 for i in xrange(ll - 1, -1, -1):
                     for j in xrange(i - 1, -1, -1):
@@ -816,8 +816,10 @@ class Structure:
                 for a in model.atom:
                     residues[a.resi] = residues.get(a.resi, []) + (a.coord if a.name == "CB" else [])
                 #print residues
-                lista = sorted(residues.keys())
+                lista = sorted(residues.keys(),key=lambda x: int(x))
                 ll = len(lista)
+                print lista,ll
+                print residues
                 for i in xrange(ll - 1, -1, -1):
                     for j in xrange(i - 1, -1, -1):
                         output_CB.write("\t%08.3f" % (RMSD(residues[lista[i]], residues[lista[j]]) if residues[lista[i]] and residues[lista[j]] else 1000.))
@@ -834,7 +836,7 @@ class Structure:
                 for a in model.atom:
                     residues[a.resi] = residues.get(a.resi, []) + [a.coord]
 
-                lista = sorted(residues.keys())
+                lista = sorted(residues.keys(),key=lambda x: int(x))
                 ll = len(lista)
                 for i in xrange(ll - 1, -1, -1):
                     for j in xrange(i - 1, -1, -1):

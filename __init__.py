@@ -295,6 +295,8 @@ class dcaMOL:
         self.LAST_HIT_KEY.set(0)
         self.HELD_CTRL = Tk.BooleanVar()
         self.HELD_CTRL.set(0)
+        self.HELD_LMB = Tk.BooleanVar()
+        self.HELD_LMB.set(0)
         self.LAST_CLICKED_POS = []
         self.LAST_TRACKED_POS = None
         self.BUTTONS = {1: "L", 2: "M", 3: "R"}
@@ -407,6 +409,8 @@ class dcaMOL:
 
         self.root.bind("<KeyPress>", self.keydown_all)
         self.root.bind("<KeyRelease>", self.keyup_all)
+        self.root.bind("<ButtonPress-1>", lambda *args: self.HELD_LMB.set(1))
+        self.root.bind("<ButtonRelease-1>", lambda *args: self.HELD_LMB.set(0))
 
         self.content = Tk.Frame(self.root)
         self.upper_bar = Tk.Frame(self.content,borderwidth=1, relief="sunken")
@@ -1142,7 +1146,7 @@ class dcaMOL:
                   ('Portable Network Graphics', '*.png'), ('Postscript', '*.ps'), ('Scalable Vector Graphics', '*.svg'), \
                   ('Encapsulated Postscript', '*.eps'), ('Raw RGBA bitmap', '*.rgba'), \
                   ('Portable Document Format', '*.pdf'), ('Tagged Image File Format', '*.tif')]
-        plik = tkFileDialog.asksaveasfilename(filetypes=ftypes,defaultextension=".png")
+        plik = tkFileDialog.asksaveasfilename(filetypes=ftypes)
         print "Saving {} ... ".format(plik),
         """if vector>0:
             if "Single" in self.map_structure_mode.get():
@@ -1580,8 +1584,6 @@ class dcaMOL:
         self.asker.mainloop()
 
     def slider_min_change(self,*args):  # TODO - wywalic bondy ponizej wartosci
-        self.LAST_HIT_KEY.set(0)
-        self.spin_min_var.set(self.slider_min.get())
         if self.slider_min.get() > self.slider_max.get():
             self.slider_max.set(self.slider_min.get())
         if self.map_structure_mode.get() != self.OPCJE[0] and \
@@ -1598,12 +1600,16 @@ class dcaMOL:
             self.cmapa = cmapa
             self.norm = norm
             #self.recolor_by_trueness_var.set(False)
-            self.recalcTPrate()
+            if not self.HELD_LMB.get():
+                self.recalcTPrate()
             self.canvas.draw()
         mpl.colorbar.ColorbarBase(self.cmap_ax, cmap=self.cmapa,
                                   norm=self.norm,
                                   orientation='vertical')
         #self.
+        self.LAST_HIT_KEY.set(0)
+        self.spin_min_var.set(self.slider_min.get())
+
         self.cmap_canvas.draw()
         self.redraw_bonds()
 
