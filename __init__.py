@@ -257,11 +257,16 @@ class dcaMOL:
         self.window_of_selected_bonds.withdraw()
         self.window_of_selected_bonds.wm_title("Shown bonds")
         self.window_of_selected_bonds_text = Tk.Text(self.window_of_selected_bonds, relief=Tk.FLAT,width=34)
+        self.window_of_selected_bonds_scroll = Tk.Scrollbar(self.window_of_selected_bonds)
+        self.window_of_selected_bonds_scroll.config(command=self.window_of_selected_bonds_text.yview)
+        self.window_of_selected_bonds_text.config(yscrollcommand=self.window_of_selected_bonds_scroll.set)
         self.window_of_selected_bonds_text.insert('1.0', "PLACEHOLDER")
         #self.window_of_selected_bonds_text.bind('<Control-c>', lambda *args: self.window_of_selected_bonds_text.selection_get())
         self.window_of_selected_bonds.bind('<Control-c>', lambda *args: (self.root.clipboard_clear(),self.root.clipboard_append(self.window_of_selected_bonds_text.selection_get())))
         self.window_of_selected_bonds_text.config(state="disabled")
         self.window_of_selected_bonds_text.grid(row=0,column=0)
+        self.window_of_selected_bonds_scroll.grid(row=0, column=1,sticky='ns')
+
         #self.window_of_selected_bonds_text = Tk.StringVar()#Tk.Text(self.window_of_selected_bonds, width=30, state=Tk.DISABLED)
         #self.window_of_selected_bonds_text.set("PLACEHOLDER")
         #Tk.Label(self.window_of_selected_bonds, textvariable=self.window_of_selected_bonds_text).grid(row=0,column=0)
@@ -1281,6 +1286,11 @@ class dcaMOL:
                 selected.append(sequence_selection.get(i))
             self.sequence_selection_window.quit()
             self.sequence_selection_window.destroy()
+
+        sequence_selection_scroll = Tk.Scrollbar(self.sequence_selection_window)
+        sequence_selection_scroll.config(command=sequence_selection.yview)
+        sequence_selection_scroll.grid(row=1, column=2, sticky='ns')
+        sequence_selection.config(yscrollcommand=sequence_selection_scroll.set)
 
         sel_button_protein = Tk.Button(master=self.sequence_selection_window, text='Proceed\n(protein)', command=lambda : get_selected(0))
         sel_button_rna = Tk.Button(master=self.sequence_selection_window, text='Proceed\n(RNA/DNA)', command=lambda : get_selected(1))
