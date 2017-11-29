@@ -2115,7 +2115,8 @@ class dcaMOL:
             else:
                 heatmap = self.aplot.pcolorfast(data2, cmap=cmapa,norm=norm, vmin=0.)#, vmax=vmax)
             #self.wait_window.quit()
-            self.recalcTPrate()
+            if not self.HELD_LMB.get():
+                self.recalcTPrate()
         else:
             self.data = my_struct.makeSSarray(self.DATA_BACKUP, comparison=self.comp_mode.get(), distance=self.comp_distance.get(),
                                          restricted=restricted, state=self.current_state_var.get(), nonwc=self.rna_nonwc_pairs.get())
@@ -2144,7 +2145,8 @@ class dcaMOL:
                                       norm=self.norm,
                                       orientation='vertical')
             self.cmap_canvas.draw()
-            self.recalcTPrate()
+            if not self.HELD_LMB.get():
+                self.recalcTPrate()
             self.data2 = None
         self.cmapa = cmapa
         self.norm = norm
