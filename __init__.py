@@ -406,11 +406,15 @@ class dcaMOL:
 
         ### END MENUBAR
 
+#        def mysza(dol=0,args=[]):
+#            print "Mysza dol?",dol,vars(args[0])
 
         self.root.bind("<KeyPress>", self.keydown_all)
         self.root.bind("<KeyRelease>", self.keyup_all)
+#        self.root.bind("<ButtonPress-1>", lambda *args: mysza(0,args))
+#        self.root.bind("<ButtonRelease-1>", lambda *args: mysza(1,args))
         self.root.bind("<ButtonPress-1>", lambda *args: self.HELD_LMB.set(1))
-        self.root.bind("<ButtonRelease-1>", lambda *args: self.HELD_LMB.set(0))
+        self.root.bind("<ButtonRelease-1>", lambda *args: (self.HELD_LMB.set(0),self.recalcTPrate() if  "Single" in self.map_structure_mode.get() and args[0].widget==self.slider_min else None))
 
         self.content = Tk.Frame(self.root)
         self.upper_bar = Tk.Frame(self.content,borderwidth=1, relief="sunken")
@@ -1600,7 +1604,9 @@ class dcaMOL:
             self.cmapa = cmapa
             self.norm = norm
             #self.recolor_by_trueness_var.set(False)
+            #print "Slider recalc", self.HELD_LMB.get()
             if not self.HELD_LMB.get():
+            #    print "Recalcing"
                 self.recalcTPrate()
             self.canvas.draw()
         mpl.colorbar.ColorbarBase(self.cmap_ax, cmap=self.cmapa,
@@ -2011,6 +2017,7 @@ class dcaMOL:
 
 
     def recalcTPrate(self):
+        #print "recalcing TP rate"
         if (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):
             TPrate = (len(self.data2[np.triu(self.data2) == 1.]),
                       len(self.data2[np.triu(self.data2) == 0.1]))  # TP,FP  ## TODO co zrobic z interchain?
@@ -2537,7 +2544,9 @@ class dcaMOL:
             if self.is_rna.get():
                 dm.Structure.isRNA = True
                 dm.Structure.mode = dm.Structure.available_modes_rna[0]
-
+            else:
+                dm.Structure.isRNA = False
+                dm.Structure.mode = dm.Structure.available_modes[0]
             for seq, dane in importantSeqs.items():
                 self.STRUCTURES.append(dm.Structure(dane[1], dane[2], seq, dane[0], dane[3], dane[4], splits=dane[-1]))
 
@@ -2668,6 +2677,7 @@ class dcaMOL:
             self.comp_atom_mode.set(dm.Structure.available_modes_rna[0])
             self.menu_atom_mode_rna.grid(column=0, row=1)
         else:
+            self.comp_atom_mode.set(dm.Structure.available_modes[0])
             self.menu_atom_mode_prot.grid(column=0, row=1, rowspan=2)
 
 

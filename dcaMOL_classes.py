@@ -299,6 +299,9 @@ class Translation:
         alignseq = me.sequence
         structseq = me.str_sequence
         ualignseq = "".join([i for i in alignseq if i not in [".", "-"]])
+        print ualignseq
+        print structseq
+        print nw
         if splits is None:
             (uaseq, sseq), _ = nw(ualignseq, structseq)
         elif not splits[0]:  # Im feeling lucky
@@ -487,6 +490,8 @@ def verify_nw():
     global nw
     if Structure.isRNA:
         nw = nw_rna
+    else:
+        nw = nw_prot
 
 class Structure:
     available_modes = [u"C\u03B1",u"C\u03B2","All heavy atoms"]
