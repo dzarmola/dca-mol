@@ -387,10 +387,10 @@ class dcaMOL:
         #self.fileMenu.add_command(label='Save plot as .svg', command=lambda: self._save(1), underline=14)
         #self.fileMenu.add_command(label='Save plot as .eps', command=lambda: self._save(2), underline=14)
         self.fileMenu.add_separator()
-        self.fileMenu.add_command(label='Write out native contacts', command=self.write_native_contacts, underline=10,state=Tk.DISABLED)
-        self.fileMenu.add_command(label='Write out all contacts', command=self.write_all_contacts, underline=10,state=Tk.DISABLED)
-        self.fileMenu.add_command(label='Write out currently shown DI scores', command=self.write_shown_di, underline=10,state=Tk.DISABLED)
-        self.fileMenu.add_command(label='Write out currently selected DI scores', command=self.write_selected_di, underline=10,state=Tk.DISABLED)
+        self.fileMenu.add_command(label='Save native contacts to a file', command=self.write_native_contacts, underline=10,state=Tk.DISABLED)
+        self.fileMenu.add_command(label='Save all distances for the current contact map to a file', command=self.write_all_contacts, underline=10,state=Tk.DISABLED)
+        self.fileMenu.add_command(label='Save currently shown DI scores to a file', command=self.write_shown_di, underline=10,state=Tk.DISABLED)
+        self.fileMenu.add_command(label='Save currently displayed bonds to a file', command=self.write_selected_di, underline=10,state=Tk.DISABLED)
         self.fileMenu.add_separator()
         self.fileMenu.add_command(label="Options", command=self._configure_window, underline=0)
         self.fileMenu.add_separator()
@@ -483,14 +483,26 @@ class dcaMOL:
 
         self.content = Tk.Frame(self.root)
         self.upper_bar = Tk.Frame(self.content,borderwidth=1, relief="sunken")
-        self.left_bar = Tk.Frame(self.content, borderwidth=1, relief="sunken")
+
+        self.left_bar_overall = Tk.Frame(self.content, borderwidth=0)
+        self.left_bar_canvas = Tk.Canvas(self.left_bar_overall, borderwidth=0)
+        self.left_bar = Tk.Frame(self.left_bar_canvas, borderwidth=1, relief="sunken")
+        self.left_bar_scroll = Tk.Scrollbar(self.left_bar_overall, orient="vertical", command=self.left_bar_canvas.yview)
+        self.left_bar_canvas.configure(yscrollcommand=self.left_bar_scroll.set)
+        self.left_bar_canvas.grid(row=0,column=0,sticky="ns")
+        self.left_bar_scroll.grid(row=0, column=1,sticky='ns')
+        self.left_bar_canvas.create_window((0,0), window=self.left_bar, anchor="nw",
+                                  tags="self.left_bar")
+        self.left_bar.bind("<Configure>", self.onLeftBarConfigure)
+        #self.left_bar_canvas.bind("<Configure>", self.onLeftBarCanvasConfigure)
+
         self.plot_field = Tk.Frame(self.content)
         self.mode_frame = Tk.Frame(self.content)
 
         self.content.grid(column=0, row=0,sticky="NEWS")
         self.mode_frame.grid(column=0,row=0)
         self.upper_bar.grid(column=1, row=0,sticky='W')
-        self.left_bar.grid(column=0, row=1,sticky="N")
+        self.left_bar_overall.grid(column=0, row=1,sticky="N")
         self.plot_field.grid(column=1,row=1,sticky="NWSE")
 
         self.content.grid_columnconfigure(1, weight=1)
@@ -785,6 +797,20 @@ class dcaMOL:
 
         self.dcaMOL_main()
 
+    def onLeftBarConfigure(self, event):
+        '''Reset the scroll region to encompass the inner frame'''
+        #print "Firing in frame", event.width, event.height
+        self.left_bar_canvas.configure(height=event.height,width=event.width)
+        self.left_bar_canvas.configure(scrollregion=self.left_bar_canvas.bbox("all"))
+
+
+    """def onLeftBarCanvasConfigure(self, event):
+        # width is tweaked to account for window borders
+
+        width = event.width - 4
+        height = event.height - 4
+        print "Firing in canvas",width,height
+        #self.left_bar_canvas.itemconfigure("self.left_bar", width=width)"""
 ###### TRAJECTROY MODE
     def writeout_popup(self,container):
         popup = Tk.Toplevel(self.root)
@@ -2077,6 +2103,7 @@ class dcaMOL:
             #self.spin_comp_distance.pack_forget()
             #self.menu_atom_mode.pack_forget()
             self.aplot = self.FIGURE.add_subplot(111)
+            self.aplot.set_aspect('equal', 'datalim')
             self.data = np.array(self.DATA_BACKUP)
             if self.colormap.get() == "BinaryTP":
                 cmapa, norm = self.binaryColormap()
@@ -2208,6 +2235,8 @@ class dcaMOL:
         self.norm = norm
         self.SS_plots += my_struct.plotSS(self.FIGURE, self.aplot, restricted=restricted)
         #self.aplot.set_aspect('equal', 'datalim')
+
+
         self.canvas.draw()
 
     def lets_do_the_flip(self):
@@ -2793,15 +2822,26 @@ class dcaMOL:
 
         self.root.minsize(775,700)
         self.root.aspect(620, 530, 620, 530)
+        #self.PLOT_CANVAS_HEIGHT = self.content.winfo_height()
+        self.root.bind('<Configure>', self.resize)
 
-#        self.root.bind('<Configure>', self.resize)
 
         self.root.mainloop()
     def resize(self, event):
+        try:
+            self.left_bar_canvas.configure(height=self.plot_field.winfo_height()-10)
+        except Tk.TclError:
+            pass
+        #size = min(self.plot_field.winfo_height(), self.plot_field.winfo_width())-2
+        #self.canvas.configure(height=size,width=size)
+        #self.left_bar_scroll.configure(height=self.content.winfo_height())
+
+        #import time
         #print "Resizing",event.width, event.height
-        hei = self.root.winfo_height()
-        wid = self.root.winfo_width()
-        #print hei,wid
+
+        #hei = self.root.winfo_height()
+        #wid = self.root.winfo_width()
+        #print "Firing on window",hei,wid,time.time()
 #        sw = self.mode_frame.winfo_width()
 #        sh = self.mode_frame.winfo_height()
 #        h = min(wid - sw, hei - sh)#*1./self.default_plot_dpi
