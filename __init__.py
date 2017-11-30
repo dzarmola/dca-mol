@@ -2130,18 +2130,28 @@ class dcaMOL:
             TPrate = (len(self.data2[np.triu(self.data2) == 1.]),
                       len(self.data2[np.triu(self.data2) == 0.1]))  # TP,FP  ## TODO co zrobic z interchain?
 #            print "TPRATE", TPrate, sum(TPrate)
+            #print TPrate,sum(TPrate)
             self.TPrate.set("%5.2f%%" % (TPrate[0] * 100. / sum(TPrate)))
             self.TP_frame.grid(column=1, row=0, padx=10)
         else:
             if self.comp_mode.get():
                 TPrate=0
                 all=0
-                for x in xrange(self.data.shape[0]):
+                """for x in xrange(self.data.shape[0]):
                     for y in xrange(x+1,self.data.shape[0]):
                         #print x,y,self.data[x][y]
                         TPrate+=(type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get() and type(self.data[y][x]) != np.ma.core.MaskedConstant and self.data[y][x]>0)
                         all+= (type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get() and type(self.data[y][x]) != np.ma.core.MaskedConstant)
-#                print "TPRATE",TPrate,all
+#                print "TPRATE",TPrate,all"""
+                #u =np.where(np.triu(self.data) > self.slider_min.get())
+                #l = np.where(np.tril(self.data)>0.)
+                #TPrate = len(self.data[ u & (l[1],l[0])])
+                #all = len(self.data[np.triu(self.data)>self.slider_min.get()])
+                mins = self.slider_min.get()
+                TPrate = len(set(zip(*(map(list,np.where(np.triu(np.transpose(self.data))>0.))))) & set(zip(*(map(list,np.where(np.triu(self.data)>mins))))))
+                all = len(set(zip(*(map(list,np.where(np.triu(self.data)>mins))))))
+                #print TPrate,all, self.data[0,0],self.data[30,30]
+
                 self.TPrate.set("%5.2f%%" % (TPrate*100./all))
                                 #(TPrate*100./len(self.data[np.triu(self.data)>self.slider_min.get()])))
                 self.TP_frame.grid(column=1, row=0, padx=10)
