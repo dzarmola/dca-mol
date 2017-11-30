@@ -14,6 +14,9 @@ import getpass
 #1: generic/open-source
 #2: evaluation
 #3: edu
+from distutils.spawn import find_executable
+LATEX_FOUND = find_executable('latex')
+
 
 
 # TODO check which paths should actually be used
@@ -81,6 +84,8 @@ for path in potential_paths:
         from matplotlib import patches, colors
         import matplotlib.pyplot as plt
         from pylab import cm
+
+        if LATEX_FOUND = mpl.rcParams['text.usetex'] = True
 
         done =1
     except:
@@ -1155,13 +1160,15 @@ class dcaMOL:
 
     def _save(self):
         #exts = {0:".png",1:".svg",2:".eps"}
-        ftypes = [('Portable Network Graphics', '*.png'), ('PGF code for LaTeX', '*.pgf'),\
+        ftypes = [('Portable Network Graphics', '*.png'),\
                   ('Scalable Vector Graphics', '*.svgz'), \
                   ('Tagged Image File Format', '*.tiff'), ('Joint Photographic Experts Group', '*.jpg'), \
                   ('Raw RGBA bitmap', '*.raw'), ('Joint Photographic Experts Group', '*.jpeg'), \
                    ('Postscript', '*.ps'), ('Scalable Vector Graphics', '*.svg'), \
                   ('Encapsulated Postscript', '*.eps'), ('Raw RGBA bitmap', '*.rgba'), \
                   ('Portable Document Format', '*.pdf'), ('Tagged Image File Format', '*.tif')]
+        if LATEX_FOUND:
+            ftypes.append(('PGF code for LaTeX', '*.pgf'))
         plik = tkFileDialog.asksaveasfilename(filetypes=ftypes)
         print "Saving {} ... ".format(plik),
         """if vector>0:
