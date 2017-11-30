@@ -27,6 +27,26 @@ nw = nw_prot
 WC_PAIRS = [ "GC","CG","AU","UA","AT","TA"]
 OTHER_PAIRS = ["GU","UG"]
 
+class RMB_menu:
+    def __init__(self,root,master,var):
+        self.rmenu = Tk.Menu(master=master,tearoff=0)
+        self.rmenu.add_command(label="Copy selected",command=self.copy)
+        self.rmenu.add_command(label="Copy everything",command=self.copy_all)
+        self.root = root
+        self.var = var
+    def copy(self,*args):
+        self.root.clipboard_clear()
+        try:
+            self.root.clipboard_append(self.var.selection_get())
+        except:
+            pass
+    def copy_all(self,*args):
+        self.root.clipboard_clear()
+        self.root.clipboard_append(self.var.get("1.0",Tk.END))
+
+    def popup(self, event):
+        self.rmenu.post(event.x_root, event.y_root)
+
 def getChainMap(objId, my_chains):
     my_chains = list(my_chains)
     refs = {c: ["".join(cmd.get_fastastr('({} and c. {})'.format(objId, c)).split()[1:])] for c in my_chains}

@@ -85,7 +85,17 @@ for path in potential_paths:
         import matplotlib.pyplot as plt
         from pylab import cm
 
-        if LATEX_FOUND = mpl.rcParams['text.usetex'] = True
+        """if LATEX_FOUND:
+            mpl.rcParams['pdf.fonttype'] = 42
+            mpl.rcParams['svg.fonttype'] = 'none'
+            mpl.rcParams['ps.useafm'] = True
+            mpl.rcParams['pdf.use14corefonts'] = True
+            mpl.rcParams['text.usetex'] = True
+            mpl.rc('text', usetex=True)
+            #mpl.rcParams['text.latex.preamble'] = [
+            #    r'\usepackage[default,scale=0.85]{opensans}'
+            #]"""
+
 
         done =1
     except:
@@ -151,6 +161,40 @@ for path in potential_paths:
                     ('Save', 'Save the figure', 'filesave', 'save_figure'),
                     )
                 NavigationToolbar2TkAgg.__init__(self, canvas_, parent_)
+
+            def save_figure(self, *args):
+#                from six.moves import tkinter_tkfiledialog, tkinter_messagebox
+                ftypes = [('Portable Network Graphics', '*.png'), \
+                          ('Scalable Vector Graphics', '*.svgz'), \
+                          ('Tagged Image File Format', '*.tiff'), ('Joint Photographic Experts Group', '*.jpg'), \
+                          ('Raw RGBA bitmap', '*.raw'), ('Joint Photographic Experts Group', '*.jpeg'), \
+                          ('Postscript', '*.ps'), ('Scalable Vector Graphics', '*.svg'), \
+                          ('Encapsulated Postscript', '*.eps'), ('Raw RGBA bitmap', '*.rgba'), \
+                          ('Portable Document Format', '*.pdf'), ('Tagged Image File Format', '*.tif')]
+                if LATEX_FOUND:
+                    ftypes.append(('PGF code for LaTeX', '*.pgf'))
+
+                defaultextension = ''
+                initialdir = os.path.expanduser(mpl.rcParams['savefig.directory'])
+                fname = tkFileDialog.asksaveasfilename(
+                    master=self.window,
+                    title='Save the figure',
+                    filetypes=ftypes,
+                    defaultextension=defaultextension,
+                    initialdir=initialdir,
+                )
+
+                if fname in ["", ()]:
+                    return
+                # Save dir for next time, unless empty str (i.e., use cwd).
+                if initialdir != "":
+                    mpl.rcParams['savefig.directory'] = (ntpath.dirname(fname))
+                try:
+                    # This method will handle the delegation to the correct type
+                    self.canvas.figure.savefig(fname)
+                except Exception as e:
+                    tkMessageBox.showerror("Error saving file", str(e))
+
 
         done = 1
     except:
@@ -271,6 +315,8 @@ class dcaMOL:
         self.window_of_selected_bonds_text.config(state="disabled")
         self.window_of_selected_bonds_text.grid(row=0,column=0)
         self.window_of_selected_bonds_scroll.grid(row=0, column=1,sticky='ns')
+        self.window_of_selected_bonds_rmbmenu = dm.RMB_menu(self.root,self.window_of_selected_bonds,self.window_of_selected_bonds_text)
+        self.window_of_selected_bonds_text.bind('<Button-3>', self.window_of_selected_bonds_rmbmenu.popup)
 
         #self.window_of_selected_bonds_text = Tk.StringVar()#Tk.Text(self.window_of_selected_bonds, width=30, state=Tk.DISABLED)
         #self.window_of_selected_bonds_text.set("PLACEHOLDER")
@@ -334,7 +380,8 @@ class dcaMOL:
 
 
         self.fileMenu = Tk.Menu(self.menubar)
-        self.fileMenu.add_command(label='Save plot image', command=lambda: self._save(), underline=14)
+        #self.fileMenu.add_command(label='Save plot image', command=lambda: self._save(), underline=14)
+        self.fileMenu.add_command(label='Save plot image', command=lambda: self.customToolbar.save_figure(), underline=14)
         #self.fileMenu.add_command(label='Save plot as .svg', command=lambda: self._save(1), underline=14)
         #self.fileMenu.add_command(label='Save plot as .eps', command=lambda: self._save(2), underline=14)
         self.fileMenu.add_separator()
@@ -687,8 +734,8 @@ class dcaMOL:
         self.canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
         self.tool_frame = Tk.Frame(self.plot_field)
         self.canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
-        c = CustomToolbar(self.canvas, self.tool_frame)
-        c.update()
+        self.customToolbar = CustomToolbar(self.canvas, self.tool_frame)
+        self.customToolbar.update()
         self.tool_frame.pack(side=Tk.LEFT)
 
         #### END PLOT FIELD
