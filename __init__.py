@@ -85,6 +85,8 @@ for path in potential_paths:
         import matplotlib.pyplot as plt
         from pylab import cm
 
+        mpl.rcParams['font.family'] = 'sans-serif'
+        mpl.rcParams['font.sans-serif'] = ['Arial']
         """if LATEX_FOUND:
             mpl.rcParams['pdf.fonttype'] = 42
             mpl.rcParams['svg.fonttype'] = 'none'
