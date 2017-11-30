@@ -479,7 +479,7 @@ class dcaMOL:
 #        self.root.bind("<ButtonPress-1>", lambda *args: mysza(0,args))
 #        self.root.bind("<ButtonRelease-1>", lambda *args: mysza(1,args))
         self.root.bind("<ButtonPress-1>", lambda *args: self.HELD_LMB.set(1))
-        self.root.bind("<ButtonRelease-1>", lambda *args: (self.HELD_LMB.set(0),self.recalcTPrate() if  "Single" in self.map_structure_mode.get() and args[0].widget==self.slider_min else None))
+        self.root.bind("<ButtonRelease-1>", lambda *args: (self.HELD_LMB.set(0),self.recalcTPrate() if  "Single" in self.map_structure_mode.get() and args[0].widget in [self.slider_min,self.spin_comp_distance] else None))
 
         self.content = Tk.Frame(self.root)
         self.upper_bar = Tk.Frame(self.content,borderwidth=1, relief="sunken")
@@ -678,13 +678,13 @@ class dcaMOL:
         self.spin_min = Tk.Spinbox(sl_min, textvariable=self.spin_min_var, from_=0.01, to=1,
                                    increment=0.001,
                                    command=self.spin_min_change, width=6)
-        self.slider_min.set(0.001)
+        self.slider_min.set(0.01)
         Tk.Label(sl_min, text="Lower range border").grid(column=0, row=0, columnspan=2,sticky='W')
         self.slider_min.grid(column=1, row=1)
-        self.spin_min_var.set(0.001)
+        self.spin_min_var.set(0.01)
         self.spin_min.grid(column=0, row=1)
         self.spin_min.bind("<KeyPress>", self.spin_min_change_key)
-        self.spin_min.bind("<Button-1>", self.onclick())
+        self.spin_min.bind("<Button-1>", self.onclick)
         self.spin_min_var.trace("w", self.spin_min_change)
 
         ### END SPIN MIN
@@ -695,6 +695,7 @@ class dcaMOL:
         self.spin_max = Tk.Spinbox(sl_max, textvariable=self.spin_max_var, from_=0, to=1,
                                    increment=0.001, width=6,
                                    command=self.spin_max_change)
+        self.spin_max.bind("<Button-1>", self.onclick)
         Tk.Label(sl_max, text="Upper range border").grid(column=0, row=0, columnspan=2,sticky='W')
         self.slider_max.grid(column=1, row=1)
         self.spin_max.grid(column=0, row=1)
@@ -1280,10 +1281,12 @@ class dcaMOL:
     def keydown_all(self,event):
         if event.keysym=="Control_L" or event.keysym=="Control_R":
             self.HELD_CTRL.set(True)
+        self.LAST_HIT_KEY.set(event.keysym in ["Return", "KP_Enter", "Extended-Return"])
 
     def keyup_all(self,event):
         if event.keysym=="Control_L" or event.keysym=="Control_R":
             self.HELD_CTRL.set(False)
+        #self.LAST_HIT_KEY.set(event.keysym in ["Return", "KP_Enter", "Extended-Return"])
 
     def dcaMOL_main(self):
         root = self.loader_window
@@ -1719,11 +1722,12 @@ class dcaMOL:
         self.redraw_bonds()
 
     def spin_min_change(self,*args):
+        print self.LAST_HIT_KEY.get()
         if not self.LAST_HIT_KEY.get():
             return
-        self.slider_min.set(self.spin_min.get())
         if not self.recolor_by_trueness_var.get() and not self.recolor_by_any_trueness.get():
             self.spin_min_var_4cmap.set(str(self.spin_min.get()))
+        self.slider_min.set(self.spin_min.get())
 
     def spin_max_change(self,*args):
         if not self.LAST_HIT_KEY.get():
@@ -1864,7 +1868,8 @@ class dcaMOL:
             return
         self.makeSSplot()
     def spin_comp_distance_click(self,*args):
-        self.makeSSplot()
+        self.LAST_HIT_KEY.set(1)
+#        self.makeSSplot()
 
 
     def spin_comp_distance_key(self,event):
@@ -2164,7 +2169,6 @@ class dcaMOL:
             return
         self.clear_pymol_bonds()
         self.SELECTED_REGIONS = []
-        self.TP_frame.grid_forget()
         self.FIGURE.clf()
         self.SS_plots = []
         restricted = self.restrict_to_structure_var.get()
@@ -2211,8 +2215,10 @@ class dcaMOL:
             if not self.HELD_LMB.get():
                 self.recalcTPrate()
         else:
+            if not self.comp_mode.get(): self.TP_frame.grid_forget()
             self.data = my_struct.makeSSarray(self.DATA_BACKUP, comparison=self.comp_mode.get(), distance=self.comp_distance.get(),
                                          restricted=restricted, state=self.current_state_var.get(), nonwc=self.rna_nonwc_pairs.get())
+
             if self.colormap.get() == "BinaryTP":
                 cmapa, norm = self.binaryColormap()
                 cmapa.set_bad(color="0.75")
