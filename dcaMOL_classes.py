@@ -580,8 +580,11 @@ class Structure:
         else:
             preset.pretty(self.objId)
             preset.pretty("(%s and %s)"%(self.objId,self.chain))
+            cmd.color("grey60","(%s and %s)"%(self.objId,self.chain))
             for c in self.chains_to_keep:
                 preset.pretty("(%s and c. %s)"%(self.objId,c))
+                cmd.color("grey60", "(%s and %s)" % (self.objId, c))
+
         cmd.center("(%s and %s)"%(self.objId,self.chain))
 #        cmd.hide("cartoon","(%s and not  %s)"%(self.objId,
 #            self.chain if not self.chains_to_keep else "( %s or %s )"%(self.chain,"c. "+(" or c. ".join(self.chains_to_keep))) ))
