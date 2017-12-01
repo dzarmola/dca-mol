@@ -585,12 +585,13 @@ class Structure:
         if already_there:
             cmd.hide("everything",objId.strip("DM_"))
         else:
+            cmd.bg_color(color = "white")
             preset.pretty(self.objId)
             preset.pretty("(%s and %s)"%(self.objId,self.chain))
-            cmd.color("grey60","(%s and %s)"%(self.objId,self.chain))
+            # cmd.color("grey60","(%s and %s)"%(self.objId,self.chain))
             for c in self.chains_to_keep:
                 preset.pretty("(%s and c. %s)"%(self.objId,c))
-                cmd.color("grey60", "(%s and %s)" % (self.objId, c))
+                # cmd.color("grey60", "(%s and %s)" % (self.objId, c))
 
         cmd.center("(%s and %s)"%(self.objId,self.chain))
 #        cmd.hide("cartoon","(%s and not  %s)"%(self.objId,
@@ -1439,7 +1440,7 @@ class Structure:
             alpha = [x+0.5 for x in [self.translations.resid2unal_fasta(s.pdbid) for s in self.residues if s.ss == "H"]
                      if x is not None]
         ##BELOW XAXIS ####
-        m = plt.subplot2grid((60, 60), (55, 5), colspan=55, rowspan=5, sharex=hmap)
+        m = plt.subplot2grid((60, 60), (55, 5), colspan=54, rowspan=5, sharex=hmap)
         m.plot(range(size), [1 for x in xrange(size)], color='grey')
         m.plot(beta, [1] * len(beta), marker=ur'$\u21D2$', linestyle='None', color='blue')
         #m.plot(beta, [1] * len(beta), 'y>')
@@ -1457,7 +1458,7 @@ class Structure:
         plt.subplots_adjust(hspace=0, wspace=0)
         #plt.subplots_adjust(left=0.03, bottom=0.03, right=1, top=1, wspace=0, hspace=0)
         ##LEFT TO XAXIS ####
-        n = plt.subplot2grid((60, 60), (0, 0), colspan=5, rowspan=55, sharey=hmap)
+        n = plt.subplot2grid((60, 60), (1, 0), colspan=5, rowspan=54, sharey=hmap)
         n.plot([1 for x in xrange(size)], range(size), color='grey')
         n.plot([1] * len(beta), beta, linestyle='None', marker=ur'$\u21D1$',color='blue') #E017 #221D
         n.plot([1] * len(alpha), alpha, linestyle='None', marker=ur'$\u221D$',color='red')#10454

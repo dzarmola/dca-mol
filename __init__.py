@@ -1783,7 +1783,7 @@ class dcaMOL:
         self.redraw_bonds()
 
     def spin_min_change(self,*args):
-        print self.LAST_HIT_KEY.get()
+        # print self.LAST_HIT_KEY.get()
         if not self.LAST_HIT_KEY.get():
             return
         if not self.recolor_by_trueness_var.get() and not self.recolor_by_any_trueness.get() and not self.overlay_var.get():
@@ -1994,7 +1994,7 @@ class dcaMOL:
         #self.window_of_selected_bonds_text.set("")
         self.window_of_selected_bonds_text.config(state=Tk.NORMAL)
         self.window_of_selected_bonds_text.delete('1.0',Tk.END)
-        print "Updating"
+        # print "Updating"
         def get_res(s):
             try:
                 i = s.split("i. ")[1].split()[0]
@@ -2262,8 +2262,8 @@ class dcaMOL:
         self.FIGURE.clf()
         self.SS_plots = []
         restricted = self.restrict_to_structure_var.get()
-        self.aplot = plt.subplot2grid((60, 60), (0, 5), colspan=55,
-                                 rowspan=55)  # ,fig=FIGURE)#,fig=0)#FIGURE)#    add_subplot(211)
+        self.aplot = plt.subplot2grid((60, 60), (1, 5), colspan=54,
+                                 rowspan=54)  # ,fig=FIGURE)#,fig=0)#FIGURE)#    add_subplot(211)
         my_struct = self.current_structure_obj_var
             #[x for x in self.STRUCTURES if x.objId in self.map_structure_mode.get().split(": ")[-1]][0]
 
@@ -2368,8 +2368,7 @@ class dcaMOL:
         self.norm = norm
         self.SS_plots += my_struct.plotSS(self.FIGURE, self.aplot, restricted=(restricted or self.overlay_var.get()))
         #self.aplot.set_aspect('equal', 'datalim')
-
-
+        self.aplot.invert_yaxis()#set_ylim(self.aplot.get_ylim()[::-1])
         self.canvas.draw()
 
     def lets_do_the_flip(self):
