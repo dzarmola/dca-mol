@@ -816,7 +816,7 @@ class dcaMOL:
 
         self.root.protocol("WM_DELETE_WINDOW", lambda: self._on_closing(parent=False))
         #self.parent.protocol("WM_DELETE_WINDOW", lambda: self._on_closing(parent=True))
-
+        #print "Will start first window"
         self.dcaMOL_main()
 
     def onLeftBarConfigure(self, event):
@@ -1393,6 +1393,9 @@ class dcaMOL:
             but_ld_label.set("Load DI scores from {}".format(shorten(self.discores)))
             starter0.config(state="normal")
             starter1.config(state="normal")
+        #print "made first window"
+        self.loader_window.mainloop()
+
 
     def ask_for_structures(self,headers, selected):
         self.sequence_selection_window = Tk.Toplevel(self.root)
@@ -1425,6 +1428,7 @@ class dcaMOL:
         sel_button_rna = Tk.Button(master=self.sequence_selection_window, text='Proceed\n(RNA/DNA)', command=lambda : get_selected(1))
         sel_button_protein.grid(row=2,column=0)
         sel_button_rna.grid(row=2, column=1)
+        Tk.Button(self.sequence_selection_window, text="Go back", command=self._reset).grid(row=3,column=0,sticky="w")
         self.sequence_selection_window.mainloop()
 
     def read_pdb(self,variable, label):
@@ -1451,8 +1455,8 @@ class dcaMOL:
             entry.config(fg = 'grey')
 
     def ask_for_correct_ids(self, selected, mapping):
-        self.sequence_selection_window = Tk.Toplevel(self.root)
-        self.sequence_selection_window.wm_title("Specify PDB ids of those sequences/select a file")
+        self.structure_selection_window = Tk.Toplevel(self.root)
+        self.structure_selection_window.wm_title("Specify PDB ids of those sequences/select a file")
         ## header # [pdb] Chain [] [load file] [select loaded] [] Keep similar [] DNA/RNA [Add more]
 
         currently_present = cmd.get_object_list('(all)')
@@ -1465,6 +1469,9 @@ class dcaMOL:
         similar_vars = []
         cnt_vars = []
         del_butts = [None for x in selected]
+
+        result_code = Tk.BooleanVar()
+        result_code.set(0)
 
         def del_row(vars):
             frame, index = vars
@@ -1628,11 +1635,12 @@ class dcaMOL:
                         return
                 mapping[id] = mapping_id
 #            print mapping
-            self.sequence_selection_window.quit()
-            self.sequence_selection_window.destroy()
+            result_code.set(1)
+            self.structure_selection_window.quit()
+            self.structure_selection_window.destroy()
 
         for index, id in enumerate(selected):
-            f = Tk.Frame(master=self.sequence_selection_window)
+            f = Tk.Frame(master=self.structure_selection_window)
             frames.append([])
             cnt_vars.append(-1)
             # jako pierwszy prosta pozioma kreska?
@@ -1641,9 +1649,12 @@ class dcaMOL:
             f.grid(row=index,column=0)
 
         # entries[0].focus()
-        sel_button = Tk.Button(master=self.sequence_selection_window, text='Done', command=get_selected)
+        sel_button = Tk.Button(master=self.structure_selection_window, text='Done', command=get_selected)
         sel_button.grid(column=0, row=len(selected))
-        self.sequence_selection_window.mainloop()
+        Tk.Button(self.structure_selection_window, text="Go back", command= \
+            lambda: (self.structure_selection_window.quit(),self.structure_selection_window.destroy())).grid(row=len(selected)+1, column=0, sticky="w")
+        self.structure_selection_window.mainloop()
+        return result_code.get()
 
     def get_sequence_splits_for_structures(self,id, seq, mapid, results):
         text = "Indicate correct sequence breaks between {}\n on the sequence below by adding newlines.".format(
@@ -1689,14 +1700,18 @@ class dcaMOL:
                     allSeqs.append(h.strip())
                 except StopIteration:
                     break
-        selected = []
-        allSeqs = sorted(allSeqs)
-        self.ask_for_structures(allSeqs, selected)
-        with open(filename) as infile1:
-            allSeqs = hf.get_seq_by_head(infile1, selected)
-        mapping = {}
-        if allSeqs:
-            self.ask_for_correct_ids(selected, mapping)  # TODO autofill entry if id[:4] in PDB?
+        maybe_allSeqs = sorted(allSeqs)
+        user_accepted = 0
+        while not user_accepted:
+            selected = []
+            self.ask_for_structures(maybe_allSeqs, selected)
+            with open(filename) as infile1:
+                allSeqs = hf.get_seq_by_head(infile1, selected)
+            mapping = {}
+            if allSeqs:
+                user_accepted = self.ask_for_correct_ids(selected, mapping)  # TODO autofill entry if id[:4] in PDB?
+            else:
+                user_accepted = 1
         for id in mapping.keys():
             if mapping[id] is None:
                 del mapping[id]
