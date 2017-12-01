@@ -1395,6 +1395,10 @@ class dcaMOL:
             sequence_selection.insert(Tk.END, header)
 
         def get_selected(is_rna,*args):
+            if not sequence_selection.curselection():
+                if not tkMessageBox.askokcancel("No selection",
+                                            "You didn't select any sequence - no structural mapping will be shown.\n Do you wish to continue regardless?"):
+                    return
             if is_rna:
                 self.is_rna.set(1)
             items = map(int, sequence_selection.curselection())
@@ -1557,6 +1561,7 @@ class dcaMOL:
             appendix = ""
             chain = chains_vars[i][row_num].get()
             if loaded_vars[i] and loaded_vars[i][row_num].get() != "Select already loaded":
+                print "Loading from aleardy in", i
                 lv = loaded_vars[i][row_num].get()
                 name = "DM_" + lv + appendix
                 while name in taken_ids:
@@ -1565,7 +1570,7 @@ class dcaMOL:
                 cmd.copy(name, lv)
                 mapping_id = [name, chain, keep_others, False]
             elif filenames_vars[i][row_num][0].get() not in ["Load local file", ""]:
-                print "Loading from file", id
+                print "Loading from file", i
                 nid = ntpath.splitext(ntpath.basename(filenames_vars[i][row_num][0].get()))[0]
                 while nid + appendix in taken_ids:
                     appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
@@ -1583,6 +1588,7 @@ class dcaMOL:
             else:
                 print "No selection for ", i, row_num
                 mapping_id = None
+            print "mapping is",mapping_id
             return mapping_id
 
         def get_selected(*args):
