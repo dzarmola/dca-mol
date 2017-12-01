@@ -258,6 +258,7 @@ class dcaMOL:
         self.default_dpi = 1200
         self.default_plot_dpi = 100
         self.TP_cmap, self.TP_norm = self._make_new_TP_cmap()
+        self.overlay_cmap, self.overlay_norm = self._make_new_overlay_cmap()
 
         self._read_in_config_file()
 
@@ -418,6 +419,8 @@ class dcaMOL:
         self.comp_mode.set(0)
         self.restrict_to_structure_var = Tk.BooleanVar()
         self.restrict_to_structure_var.set(0)
+        self.overlay_var = Tk.BooleanVar()
+        self.overlay_var.set(0)
 
         self.show_bond_selection.trace("w", self.show_bonds_window)
 
@@ -432,6 +435,8 @@ class dcaMOL:
                                               command=lambda: self.comparison_mode_engaged())
         self.SSMenu.add_checkbutton(label="Align plot to structure",
                                      variable=self.restrict_to_structure_var)
+        self.SSMenu.add_checkbutton(label="Overlay DI on native contacts",# state=Tk.DISABLED,
+                                    variable=self.overlay_var, command=self.overlay)
         self.SSMenu.add_checkbutton(label="Recolor by true/false positives",
                                                 variable=self.recolor_by_trueness_var,
                                                 command = self.recolor_by_trueness)
@@ -572,6 +577,7 @@ class dcaMOL:
                                                            increment=0.1,
                                                            width=6)  # ,command=spin_comp_distance_change)
         self.mark_on_similar_just_within_spin.bind("<KeyPress>", self.mosjws_key)
+        self.mark_on_similar_just_within_spin.bind("<Button-1>", self.onclick)
         self.mark_on_similar_just_within_cutoff.trace("w", self.mosjwc_change)
 
         self.dist_frame.grid(column=1,row=0,rowspan=3,padx=10)
@@ -1118,9 +1124,9 @@ class dcaMOL:
                 out.write("{}\t{}\n".format("TPA_COLOR",  new_colors[0]))
                 out.write("{}\t{}\n".format("TPE_COLOR", new_colors[1]))
                 out.write("{}\t{}\n".format("FP_COLOR",  new_colors[2]))
-                self.SSMenu.entryconfig(8, label="Toggle True Positives(intrachain) - " + self.default_tpa_color)
-                self.SSMenu.entryconfig(9, label="Toggle True Positives(interchain) - " + self.default_tpe_color)
-                self.SSMenu.entryconfig(10, label="Toggle False Positives - " + self.default_fp_color)
+                self.SSMenu.entryconfig(9, label="Toggle True Positives(intrachain) - " + self.default_tpa_color)
+                self.SSMenu.entryconfig(10, label="Toggle True Positives(interchain) - " + self.default_tpe_color)
+                self.SSMenu.entryconfig(11, label="Toggle False Positives - " + self.default_fp_color)
                 ###MAKE NEW TP CMAP
                 self.TP_cmap,self.TP_norm = self._make_new_TP_cmap(new_colors)
                 #### END
@@ -1134,6 +1140,13 @@ class dcaMOL:
         if not new_colors:
             new_colors = [self.default_fp_color,self.default_tpa_color,self.default_tpe_color]
         cmap = plt.cm.jet.from_list("moja", new_colors, 3)
+        norm = mpl.colors.BoundaryNorm([0, 1, 2,3], 3)
+        return cmap,norm
+    def _make_new_overlay_cmap(self,new_colors=[]):
+        if not new_colors:
+            #new_colors = [self.default_fp_color,self.default_tpa_color,self.default_tpe_color]
+            new_colors = ['red','blue','gray']
+        cmap = plt.cm.jet.from_list("moja_over", new_colors, 3)
         norm = mpl.colors.BoundaryNorm([0, 1, 2,3], 3)
         return cmap,norm
 
@@ -1693,7 +1706,7 @@ class dcaMOL:
         if self.slider_min.get() > self.slider_max.get():
             self.slider_max.set(self.slider_min.get())
         if self.map_structure_mode.get() != self.OPCJE[0] and \
-                (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):
+                (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get() or self.overlay_var.get()):
             self.makeSSplot()
         else:
             if self.colormap.get() == "BinaryTP":
@@ -1725,7 +1738,7 @@ class dcaMOL:
         print self.LAST_HIT_KEY.get()
         if not self.LAST_HIT_KEY.get():
             return
-        if not self.recolor_by_trueness_var.get() and not self.recolor_by_any_trueness.get():
+        if not self.recolor_by_trueness_var.get() and not self.recolor_by_any_trueness.get() and not self.overlay_var.get():
             self.spin_min_var_4cmap.set(str(self.spin_min.get()))
         self.slider_min.set(self.spin_min.get())
 
@@ -1733,7 +1746,7 @@ class dcaMOL:
         if not self.LAST_HIT_KEY.get():
             return
         self.slider_max.set(self.spin_max.get())
-        if not self.recolor_by_trueness_var.get() and not self.recolor_by_any_trueness.get():
+        if not self.recolor_by_trueness_var.get() and not self.recolor_by_any_trueness.get()  and not self.overlay_var.get():
             self.spin_max_var_4cmap.set(str(self.spin_max.get()))
 
     def slider_max_change(self,*args):  ## TODO (?) - wywalic bondy powyzej
@@ -1741,7 +1754,7 @@ class dcaMOL:
         self.spin_max_var.set(self.slider_max.get())
         if self.slider_min.get() > self.slider_max.get():
             self.slider_min.set(self.slider_max.get())
-        if self.map_structure_mode.get() != self.OPCJE[0] and (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):
+        if self.map_structure_mode.get() != self.OPCJE[0] and (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get() or self.overlay_var.get()):
             self.makeSSplot()
         else:
             if self.colormap.get() == "BinaryTP":
@@ -1767,7 +1780,7 @@ class dcaMOL:
             self.slider_mid.set(self.slider_max.get())
         if self.slider_mid.get() < self.slider_min.get():
             self.slider_mid.set(self.slider_min.get())
-        if self.map_structure_mode.get() != self.OPCJE[0]  and (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):
+        if self.map_structure_mode.get() != self.OPCJE[0] and (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get() or self.overlay_var.get()):
             self.makeSSplot()
         else:
             if self.colormap.get() == "BinaryTP":
@@ -1900,13 +1913,13 @@ class dcaMOL:
         self.makeSSplot()
 
     def mosjwc_change(self,*args):
-
         if not self.LAST_HIT_KEY.get():
             return
         if self.mark_on_similar_just_within.get() and any(
                 [len(x) == 1 or x[0].split()[3] != x[1].split()[3] for x in self.DRAWN_BONDS]):
             self.redraw_bonds()
         self.makeSSplot()
+
     def menu_atom_mode_change(self,*args):
         dm.Structure.mode = self.comp_atom_mode.get()
         self.clear_pymol_bonds()
@@ -1984,6 +1997,7 @@ class dcaMOL:
         self.window_of_selected_bonds_text.config(state=Tk.NORMAL)
         self.window_of_selected_bonds_text.delete('1.0',Tk.END)
         self.window_of_selected_bonds_text.config(state="disabled")
+        self.overlay_var.set(0)
         #if self.comp_mode.get():
         #    self.spin_comp_distance.pack(side=Tk.TOP)
         #    self.menu_atom_mode.pack(side=Tk.TOP)
@@ -1991,6 +2005,24 @@ class dcaMOL:
         #    self.spin_comp_distance.pack_forget()
         #    self.menu_atom_mode.pack_forget()
         self.makeSSplot()
+
+    def overlay(self):
+        #return
+        self.clear_pymol_bonds()
+        self.SELECTED_REGIONS = []
+        if self.overlay_var.get():
+            self.spin_min_var_4cmap.set("just DI")
+            self.spin_max_var_4cmap.set("just\nnative")
+        else:
+
+            self.spin_min_var_4cmap.set(self.slider_min.get())
+            self.spin_max_var_4cmap.set(self.slider_max.get())
+        self.makeSSplot()
+        mpl.colorbar.ColorbarBase(self.cmap_ax, cmap=self.cmapa,
+                                  norm=self.norm,
+                                  orientation='vertical')
+        self.cmap_canvas.draw()
+
 
     def recolor_by_any_trueness_do(self, *args):
         self.recolor_by_trueness(any=True)
@@ -2014,7 +2046,7 @@ class dcaMOL:
             #self.toggleFP = Tk.Checkbutton(self.left_controls,text="Toggle False Positives",variable=trueness_show_false) #,command=lambda: makeSSplot)
             self.toggleFP.pack()"""
 
-            self.SSMenu.entryconfig(8, state=Tk.NORMAL)
+            self.SSMenu.entryconfig(11, state=Tk.NORMAL)
             self.SSMenu.entryconfig(9, state=Tk.NORMAL)
             self.SSMenu.entryconfig(10, state=Tk.NORMAL)
 
@@ -2027,7 +2059,7 @@ class dcaMOL:
             self.toggleTPm.pack_forget()
             #self.all_combos_check.pack_forget()
             self.toggleFP.pack_forget()"""
-            self.SSMenu.entryconfig(8, state=Tk.DISABLED)
+            self.SSMenu.entryconfig(11, state=Tk.DISABLED)
             self.SSMenu.entryconfig(9, state=Tk.DISABLED)
             self.SSMenu.entryconfig(10, state=Tk.DISABLED)
             #print "spin min var",self.spin_min_var.get()
@@ -2086,6 +2118,7 @@ class dcaMOL:
             self.SSframe.grid(column=0,row=0)
             self.get_pymol_selection.grid(column=0, row=5, sticky="S")
             self.legend.grid(column=0, row=6, sticky="S")
+            self.overlay_var.set(0)
             #self.spin_comp_distance.pack(side=Tk.TOP)
             #self.menu_atom_mode.pack(side=Tk.TOP)
             #self.cursor_position_frame.pack(side=Tk.TOP)
@@ -2122,6 +2155,7 @@ class dcaMOL:
             self.norm = norm
             self.recolor_by_trueness_var.set(False)
             self.recolor_by_any_trueness.set(False)
+            self.overlay_var.set(0)
             self.canvas.draw()
         mpl.colorbar.ColorbarBase(self.cmap_ax, cmap=self.cmapa,
                                   norm=self.norm,
@@ -2131,7 +2165,14 @@ class dcaMOL:
 
     def recalcTPrate(self):
         #print "recalcing TP rate"
-        if (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):
+        if self.overlay_var.get():
+            TPrate = (len(self.data2[np.triu(self.data2) == 1.]),
+                      len(self.data2[np.triu(self.data2) == 0.1]))  # TP,FP  ## TODO co zrobic z interchain?
+            #            print "TPRATE", TPrate, sum(TPrate)
+            # print TPrate,sum(TPrate)
+            self.TPrate.set("%5.2f%%" % (TPrate[0] * 100. / sum(TPrate)))
+            self.TP_frame.grid(column=1, row=0, padx=10)
+        elif (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):
             TPrate = (len(self.data2[np.triu(self.data2) == 1.]),
                       len(self.data2[np.triu(self.data2) == 0.1]))  # TP,FP  ## TODO co zrobic z interchain?
 #            print "TPRATE", TPrate, sum(TPrate)
@@ -2177,10 +2218,35 @@ class dcaMOL:
         my_struct = self.current_structure_obj_var
             #[x for x in self.STRUCTURES if x.objId in self.map_structure_mode.get().split(": ")[-1]][0]
 
+        if self.overlay_var.get():
+            """if (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):
+                self.data = my_struct.makeSSarray(self.DATA_BACKUP, comparison=self.comp_mode.get(),
+                                                  distance=self.comp_distance.get(),
+                                                  restricted=restricted, state=self.current_state_var.get(),
+                                                  nonwc=self.rna_nonwc_pairs.get())"""
 
-        if (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):  # TODO recalc only on change
+
+            data2 = my_struct.makeOLarray(self.DATA_BACKUP, distance=self.comp_distance.get(), restricted=restricted,
+                                          nonwc=self.rna_nonwc_pairs.get(), vmin=self.slider_min.get(), state=self.current_state_var.get())
+            cmapa = self.overlay_cmap
+            cmapa.set_bad(color="white")
+            cmapa.set_over(color="black")  # "red")
+            cmapa.set_under(color="white")
+            norm = self.overlay_norm
+            data2 = np.ma.masked_where(data2 < -0.75, data2)
+            self.data2 = data2
+            if mesh:
+                heatmap = self.aplot.pcolormesh(data2, cmap=cmapa, norm=norm, vmin=0.)  # , vmax=vmax)
+            else:
+                heatmap = self.aplot.pcolorfast(data2, cmap=cmapa, norm=norm, vmin=0.)  # , vmax=vmax)
+            # self.wait_window.quit()
+            if not self.HELD_LMB.get():
+                self.recalcTPrate()
+
+        elif (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):  # TODO recalc only on change
             self.data = my_struct.makeSSarray(self.DATA_BACKUP, comparison=self.comp_mode.get(), distance=self.comp_distance.get(),
-                                         restricted=restricted, state=self.current_state_var.get(), nonwc=self.rna_nonwc_pairs.get())
+                                         restricted=restricted, state=self.current_state_var.get(), nonwc=self.rna_nonwc_pairs.get(),
+                                              overlay=self.overlay_var.get())
             #if not restricted: self.data = self.DATA_BACKUP
             #else: self.data.mask = np.ma.nomask
             data2 = np.array(self.data)
@@ -2249,7 +2315,7 @@ class dcaMOL:
             self.data2 = None
         self.cmapa = cmapa
         self.norm = norm
-        self.SS_plots += my_struct.plotSS(self.FIGURE, self.aplot, restricted=restricted)
+        self.SS_plots += my_struct.plotSS(self.FIGURE, self.aplot, restricted=(restricted or self.overlay_var.get()))
         #self.aplot.set_aspect('equal', 'datalim')
 
 
@@ -2390,6 +2456,9 @@ class dcaMOL:
 #                cmd.delete(bond[0])
             del bond
         self.DRAWN_BONDS = []
+        self.window_of_selected_bonds_text.config(state=Tk.NORMAL)
+        self.window_of_selected_bonds_text.delete('1.0',Tk.END)
+        self.window_of_selected_bonds_text.config(state="disabled")
 
     def get_added_bonds(self):
         pass
@@ -2413,7 +2482,11 @@ class dcaMOL:
             if not structure.active: continue
             for x in xrange(int(X[0]), int(X[1]) + 1):
                 for y in xrange(int(Y[0]), int(Y[1]) + 1):
-                    if not self.recolor_by_trueness_var.get() and not self.recolor_by_any_trueness.get():
+                    if self.overlay_var.get():
+                        value = self.data2[min(x, y)][max(x, y)]
+                        if type(value) == np.ma.core.MaskedConstant or value>1:
+                            continue
+                    elif (not self.recolor_by_trueness_var.get() and not self.recolor_by_any_trueness.get()):
                         value = self.data[min(x, y)][max(x, y)]
                         if value <= self.slider_min.get() or type(value) == np.ma.core.MaskedConstant:
                             continue
@@ -2422,7 +2495,7 @@ class dcaMOL:
                         if type(value) == np.ma.core.MaskedConstant:
                             continue
                     if single:
-                        if self.restrict_to_structure_var.get():
+                        if self.restrict_to_structure_var.get() or self.overlay_var.get():
                             #sx = structure.residues[x].pdbid
                             #sy = structure.residues[y].pdbid
                             #sx = structure.translations.struct2pdb(structure.translations.singleplot_restrict(x))
@@ -2453,7 +2526,7 @@ class dcaMOL:
         #    return self.binaryColormapColor(value)
         #cmap = cm.get_cmap(cmap)
         #cmap = self.cmapa
-        if (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):
+        if (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get() or self.overlay_var.get()):
             if value>2.5: value=2.5
             scale = 2.0
             #value -= 0.5
@@ -2706,7 +2779,7 @@ class dcaMOL:
         #self.save_svg_button.pack(side=Tk.RIGHT)
 
         if self.overall_mode == 1:
-            self.SSMenu.entryconfig(6, state=Tk.NORMAL)
+            self.SSMenu.entryconfig(7, state=Tk.NORMAL)
             self.states_frame.grid(column=2, row=0,padx=10)
         else:
             self.goto_first_button.forget()#grid(column=6, row=0, rowspan=2)

@@ -463,9 +463,10 @@ class Translation:
         except TypeError:
             return None
         except IndexError:
-            print unal_idx
-            print self.unal_fasta2structseq
-            raise IndexError
+            return None
+#            print unal_idx
+#            print self.unal_fasta2structseq
+ #           raise IndexError
 
     def singleplot_restrict(self, struct_idx):
         try:
@@ -1128,7 +1129,7 @@ class Structure:
     def recolorSSarray(self, data, vmin, distance_intra=8., distance_inter=24., restricted=False, comparison=False,
                        all_combos=True,state = 1, any=any, nonwc = False):
         """-1. - not important
-        0. - FP
+        0.1 - FP
         1. - TP intra
         2. - TP inter
         3. - TP both
@@ -1273,7 +1274,101 @@ class Structure:
 
         return output#,TP
 
+
     def makeSSarray_unrestricted(self,data,comparison=False,distance=8.,nonwc=False):
+        size =  len(self.sequence.replace("-","").replace(".",""))
+        output = np.zeros((size,size))
+        output.fill(-1.)
+        for x in xrange(size):
+            for y in xrange(x,size):
+                ax = self.translations.singleplot(x)
+                ay = self.translations.singleplot(y)
+                if ax is not None and ay is not None:
+                    output[x][y] = data[ax][ay]
+                else:
+                    output[x][y] = -1.
+
+        TP = None
+        if comparison:
+            TP = 0
+            contacts = self.maps[Structure.flat_modes[Structure.mode]]
+            for x in xrange(size):
+                for y in xrange(0,x):
+                    ax = self.translations.singleplot_native(x)
+                    ay = self.translations.singleplot_native(y)
+                    if ax is not None and ay is not None:
+                        if Structure.flat_modes[Structure.mode] == "canonical":
+                            if nonwc:
+                                output[x][y] = 5*(contacts[ax][ay] < 5.) if contacts[ax][ay]else -1.
+                            else:
+                                output[x][y] = 5*(contacts[ax][ay] < 2.) if contacts[ax][ay] else -1.
+                        else:
+                            output[x][y] = 5*(contacts[ax][ay]<distance) if contacts[ax][ay] else -1.
+                    else:
+                        output[x][y] = -1.
+                    TP += (output[x][y] > 1)
+        else:
+            for x in xrange(size):
+                for y in xrange(x,size):
+                    output[y][x] = output[x][y]
+        output = np.ma.masked_where(output < 0., output)
+        return output
+
+    def makeOLarray(self,data,distance=8.,restricted=False,nonwc=False,vmin=0.,state=1):
+        """0.1 - FP - just DI
+        1. - TP intra - DI contact
+        2. - TP inter - just contact"""
+        if state != self.current_state:
+            self.makeContactMap(state)
+        #print "Doing the OL array for", vmin
+        return self.makeOLarray_restricted(data, distance=distance, vmin=vmin, nonwc=nonwc) #restricted by default?
+        if restricted:
+            return self.makeOLarray_restricted(data,distance=distance,vmin=vmin,nonwc=nonwc)
+        else:
+            return self.makeOLarray_unrestricted(data,distance=distance,vmin=vmin,nonwc=nonwc)
+
+    def makeOLarray_restricted(self,data,distance=8.,vmin=0.,nonwc=False,state=1):
+        #print "Doing the OL array for", vmin
+        size = len(self.residues)
+        output = np.zeros((size, size))
+        output.fill(-1.)
+        #print output
+        contacts = self.maps[Structure.flat_modes[Structure.mode]]
+        # print "contacts",contacts,len(contacts)
+        for x in xrange(size):
+            for y in xrange(0, x):
+                ax = self.translations.singleplot_restrict_native(x)
+                ay = self.translations.singleplot_restrict_native(y)
+                if ax is not None and ay is not None:
+                    if Structure.flat_modes[Structure.mode] == "canonical":
+                        if nonwc:
+                            output[x][y] = 2 if contacts[x][y] and (contacts[x][y] < 5.) else -1.
+                        else:
+                            output[x][y] = 2 if contacts[x][y] and (contacts[x][y] < 2.) else -1.
+                    else:
+                        output[x][y] = 2 if contacts[x][y] and (contacts[x][y] < distance) else -1.
+                else:
+                    output[x][y] = -1.
+                output[y][x] = output[x][y]
+        #print output
+        for x in xrange(size):
+            for y in xrange(x,size):
+                ax = self.translations.singleplot_restrict(x)
+                ay = self.translations.singleplot_restrict(y)
+                if ax is not None and ay is not None:
+                    if data[ax][ay]>vmin:
+                        if output[x][y]>0:
+                            output[x][y] = 1.
+                            output[y][x] = 1.
+                        else:
+                            output[x][y] = 0.1
+                            output[y][x] = 0.1
+
+        output = np.ma.masked_where(output <= 0., output)
+        #print output
+        return output
+
+    def makeOLarray_unrestricted(self,data,comparison=False,distance=8.,nonwc=False,vmin=0.):
         size =  len(self.sequence.replace("-","").replace(".",""))
         output = np.zeros((size,size))
         output.fill(-1.)
