@@ -611,8 +611,10 @@ class dcaMOL:
         self.goto_first_button.grid(column=0, row=1)
         self.current_state_spin = Tk.Spinbox(self.states_frame, textvariable=self.current_state_var, from_=1,
                                              to=self.last_state_var.get(),
-                                             increment=1,
-                                             command=self.state_change, width=8)
+                                             increment=1, width=6)
+        self.current_state_spin.bind("<KeyPress>", self.css_key)
+        self.current_state_spin.bind("<Button-1>", self.onclick)
+        self.current_state_var.trace("w", self.state_change)
         self.current_state_spin.grid(column=1, row=1)
         self.goto_last_button = Tk.Button(master=self.states_frame, text='Last', command=self.goto_last_state)
         self.goto_last_button.grid(column=2, row=1)
@@ -976,19 +978,26 @@ class dcaMOL:
     def goto_last_state(self):
         #cmd.set("state", self.last_state_var.get())
         self.current_state_var.set(self.last_state_var.get())
+        self.LAST_HIT_KEY.set(1)
         self.state_change()
 
     def goto_first_state(self):
         #cmd.set("state", 1)
         self.current_state_var.set(1)
+        self.LAST_HIT_KEY.set(1)
         self.state_change()
 
-    def state_change(self):
-        #self.current_state_var.set(self.current_state_spin.get())
+    def state_change(self,*args):
+        if not self.LAST_HIT_KEY.get():
+            return
+        self.LAST_HIT_KEY.set(0)
+        self.current_state_var.set(self.current_state_spin.get())
         cmd.set("state", self.current_state_var.get())
         if self.map_structure_mode.get() != self.OPCJE[0]:
             self.makeSSplot()
-
+    def css_key(self,event):
+        self.LAST_HIT_KEY.set(event.keysym in ["Return", "KP_Enter", "Extended-Return"])
+        self.state_change()
 
 
 
@@ -2795,6 +2804,7 @@ class dcaMOL:
             _num = max(_num, structure.num_states)
         self.wait_window.withdraw()
         self.last_state_var.set(_num)
+        self.current_state_spin.config(to=_num)
         self.option_menu = Tk.OptionMenu(self.mode_frame, self.map_structure_mode, *self.OPCJE)
         self.option_menu.grid(column=0, row=0,sticky="NW")
         #self.quit_button.pack(side=Tk.RIGHT)

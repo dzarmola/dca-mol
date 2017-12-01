@@ -319,9 +319,9 @@ class Translation:
         alignseq = me.sequence
         structseq = me.str_sequence
         ualignseq = "".join([i for i in alignseq if i not in [".", "-"]])
-        print ualignseq
-        print structseq
-        print nw
+        # print ualignseq
+        # print structseq
+        # print nw
         if splits is None:
             (uaseq, sseq), _ = nw(ualignseq, structseq)
         elif not splits[0]:  # Im feeling lucky
@@ -601,7 +601,7 @@ class Structure:
             state=1)
             #print vars(m).keys()
             #print vars(m.molecule)
-            print vars(m.atom[0])
+            # print vars(m.atom[0])
             exit(1)
 
 
@@ -847,8 +847,8 @@ class Structure:
                 #print residues
                 lista = sorted(residues.keys(),key=lambda x: int(x))
                 ll = len(lista)
-                print lista,ll
-                print residues
+                # print lista,ll
+                # print residues
                 for i in xrange(ll - 1, -1, -1):
                     for j in xrange(i - 1, -1, -1):
                         output_CB.write("\t%08.3f" % (RMSD(residues[lista[i]], residues[lista[j]]) if residues[lista[i]] and residues[lista[j]] else 1000.))
