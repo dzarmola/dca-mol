@@ -1579,7 +1579,7 @@ class dcaMOL:
                 # mapping[id]=[".".join(filenames_vars[i].get().split("/")[-1].split(".")[:-1]),chains_vars[i].get()]
                 # added = cmd.get_object_list('(all)')[-1]
                 # cmd.split_chains(added)
-            elif entries_vars[i][row_num].get():
+            elif entries_vars[i][row_num].get() not in ["PDB ID",""]:
                 while entries_vars[i][row_num].get() + appendix in taken_ids:
                     appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
                 print "Fetching for", i
@@ -1588,7 +1588,7 @@ class dcaMOL:
             else:
                 print "No selection for ", i, row_num
                 mapping_id = None
-            print "mapping is",mapping_id
+            #print "mapping is",mapping_id
             return mapping_id
 
         def get_selected(*args):
