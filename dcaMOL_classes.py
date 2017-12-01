@@ -387,6 +387,12 @@ class Translation:
         else:
             Structure.version = 1.8
             (arseq,astructseq),_ = nw(rseq,structseq)
+            # print "Before alignment"
+            # print structseq
+            # print rseq
+            # print "After"
+            # print astructseq
+            # print arseq
             assert astructseq == astructseq.replace("-","") ### Dziwne, ze struktura ma cos wiecej niz sekwencja, raczej jest to error
             #print "struct_seq",astructseq
             #print "rseq",arseq
@@ -617,12 +623,13 @@ class Structure:
             n, rn, rv, a, e, q, s, _, _, _ = res
             if rn == "HOH": continue
             if cnt_resv != "s" and cnt_resv != rv:
-                self.residues.append(Residue(brn, brv, None, bs))
+                if Structure.isRNA or ("CA","C") in tmp:
+                    self.residues.append(Residue(brn, brv, None, bs))
                 tmp = []
             cnt_resv = rv
-            tmp.append(res)
+            tmp.append((n,e))
             bn, brn, brv, ba, be, bq, bs = n, rn, rv, a, e, q, s
-        if brn != "HOH": self.residues.append(Residue(brn, brv, None, bs))  # brv was None
+        if brn != "HOH" and (Structure.isRNA or ("CA","C") in tmp): self.residues.append(Residue(brn, brv, None, bs))  # brv was None
 
     def read_in_map_oneliner_arr(self,line):
         ## line = "num_line dist(last_idx,last_idx-1) . . . dist(1,0)"

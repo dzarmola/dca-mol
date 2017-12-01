@@ -250,7 +250,7 @@ class dcaMOL:
 
 
         self.path = "{}/temp/".format(os.path.dirname(os.path.realpath(__file__)))
-        self.default_cmap = "gist_ncar"
+        self.default_cmap = "rainbow"
         self.SHOW_INTER_AS_VALENCE = False
         self.default_tpa_color = "pink"
         self.default_tpe_color = "yellow"
@@ -653,7 +653,7 @@ class dcaMOL:
         self.colormap.trace("w", self.colormap_change)
         self.colormap.set(self.default_cmap)
         v = AutocompleteCombobox(cm_frame, textvar=self.colormap, width=8)  # , variable, *OPCJE)
-        v.set_shortlist(["gist_ncar", "bwr", "BinaryTP"])
+        v.set_shortlist(["rainbow", "gist_ncar","bwr", "BinaryTP"])
         v.set_completion_list([str(m) for m in cm.datad if not m.endswith("_r")])
         v.bind("<KeyPress>", self.keydown)
         v.bind("<Button-1>", self.onclick)
@@ -669,7 +669,7 @@ class dcaMOL:
         self.spin_max_var_4cmap = Tk.StringVar()
         self.spin_max_var_4cmap.set(str(self.spin_max_var.get()))
         self.spin_min_var_4cmap = Tk.StringVar()
-        self.spin_min_var_4cmap.set(str(self.spin_min_var.get()))
+        self.spin_min_var_4cmap.set(str(0.001))
         Tk.Label(cm_frame, width=6, textvariable=self.spin_max_var_4cmap).grid(column=0, row=1,sticky='W')
         Tk.Label(cm_frame, width=6, textvariable=self.spin_min_var_4cmap).grid(column=0, row=3,sticky='W')
         gradient_frame_inner = Tk.Frame(gradient_frame)
@@ -1085,7 +1085,7 @@ class dcaMOL:
         cmap = Tk.StringVar()
         cmap.set(self.default_cmap)
         vv = AutocompleteCombobox(options_frame, textvar=cmap, width=8)  # , variable, *OPCJE)
-        vv.set_shortlist(["gist_ncar", "bwr", "BinaryTP"])
+        vv.set_shortlist(["rainbow","gist_ncar", "bwr", "BinaryTP"])
         vv.set_completion_list([str(m) for m in cm.datad if not m.endswith("_r")])
         vv.grid(column=1,row=0)
 
@@ -2906,6 +2906,7 @@ class dcaMOL:
         self.slider_max.config(from_=self.UPPER_DATA_BOUND.get())
         self.slider_mid.config(from_=self.UPPER_DATA_BOUND.get())
         self.slider_max.set(self.UPPER_DATA_BOUND.get())
+        self.spin_max_var_4cmap.set(str(self.UPPER_DATA_BOUND.get()))
 
         heatmap = self.aplot.pcolorfast(self.data, cmap=self.cmapa)
         mpl.colorbar.ColorbarBase(self.cmap_ax, cmap=self.cmapa,
