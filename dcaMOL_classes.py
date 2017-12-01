@@ -1432,7 +1432,7 @@ class Structure:
             alpha = [x+0.5 for x in [self.translations.resid2unal_fasta(s.pdbid) for s in self.residues if s.ss == "H"]
                      if x is not None]
         ##BELOW XAXIS ####
-        m = plt.subplot2grid((60, 60), (56, 6), colspan=55, rowspan=4, sharex=hmap)
+        m = plt.subplot2grid((60, 60), (55, 5), colspan=55, rowspan=5, sharex=hmap)
         m.plot(range(size), [1 for x in xrange(size)], color='grey')
         m.plot(beta, [1] * len(beta), marker=ur'$\u21D2$', linestyle='None', color='blue')
         #m.plot(beta, [1] * len(beta), 'y>')
@@ -1444,13 +1444,13 @@ class Structure:
         m.set_ylim(0.9999, 1.000004)
         m.set_xlim([0, size])
         m.axis('off')
-        hmap.tick_params(axis='x', pad=22)
+        hmap.tick_params(axis='x')
         plt.setp(m.get_xticklabels(), visible=True)
         plt.setp(m.get_yticklabels(), visible=False)
         plt.subplots_adjust(hspace=0, wspace=0)
         #plt.subplots_adjust(left=0.03, bottom=0.03, right=1, top=1, wspace=0, hspace=0)
         ##LEFT TO XAXIS ####
-        n = plt.subplot2grid((60, 60), (0, 0), colspan=4, rowspan=55, sharey=hmap)
+        n = plt.subplot2grid((60, 60), (0, 0), colspan=5, rowspan=55, sharey=hmap)
         n.plot([1 for x in xrange(size)], range(size), color='grey')
         n.plot([1] * len(beta), beta, linestyle='None', marker=ur'$\u21D1$',color='blue') #E017 #221D
         n.plot([1] * len(alpha), alpha, linestyle='None', marker=ur'$\u221D$',color='red')#10454
@@ -1460,9 +1460,8 @@ class Structure:
         n.axis('off')
         plt.setp(n.get_yticklabels(), visible=True)
         plt.setp(n.get_xticklabels(), visible=False)
-        plt.subplots_adjust(hspace=0, wspace=0)
-        hmap.tick_params(axis='y', pad=22)
-        plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
-        #plt.tight_layout()
+        #plt.subplots_adjust(hspace=0, wspace=0)
+        hmap.tick_params(axis='y')
+        plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0.01, hspace=0.01)
 
         return [m, n]

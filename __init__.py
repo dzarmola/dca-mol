@@ -765,6 +765,7 @@ class dcaMOL:
         self.cmapa.set_over(color="black")
         self.cmapa.set_under(color="white")
 
+
         self.canvas = FigureCanvasTkAgg(self.FIGURE, master=self.plot_field)
         self.canvas.show()
         self.canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
@@ -773,7 +774,6 @@ class dcaMOL:
         self.customToolbar = CustomToolbar(self.canvas, self.tool_frame)
         self.customToolbar.update()
         self.tool_frame.pack(side=Tk.LEFT)
-
         #### END PLOT FIELD
 
 
@@ -2189,7 +2189,7 @@ class dcaMOL:
             #self.spin_comp_distance.pack_forget()
             #self.menu_atom_mode.pack_forget()
             self.aplot = self.FIGURE.add_subplot(111)
-            self.aplot.set_aspect('equal', 'datalim')
+            #self.aplot.set_aspect('equal', 'datalim')
             self.data = np.array(self.DATA_BACKUP)
             if self.colormap.get() == "BinaryTP":
                 cmapa, norm = self.binaryColormap()
@@ -2209,6 +2209,7 @@ class dcaMOL:
                                   norm=self.norm,
                                   orientation='vertical')
         self.cmap_canvas.draw()
+        #self.aplot.set_aspect('equal')
 
 
     def recalcTPrate(self):
@@ -2261,7 +2262,7 @@ class dcaMOL:
         self.FIGURE.clf()
         self.SS_plots = []
         restricted = self.restrict_to_structure_var.get()
-        self.aplot = plt.subplot2grid((60, 60), (0, 6), colspan=55,
+        self.aplot = plt.subplot2grid((60, 60), (0, 5), colspan=55,
                                  rowspan=55)  # ,fig=FIGURE)#,fig=0)#FIGURE)#    add_subplot(211)
         my_struct = self.current_structure_obj_var
             #[x for x in self.STRUCTURES if x.objId in self.map_structure_mode.get().split(": ")[-1]][0]
@@ -2361,6 +2362,8 @@ class dcaMOL:
             if not self.HELD_LMB.get():
                 self.recalcTPrate()
             self.data2 = None
+        #self.aplot.set_aspect('equal')
+        # self.aplot.set_aspect('equal', 'datalim')
         self.cmapa = cmapa
         self.norm = norm
         self.SS_plots += my_struct.plotSS(self.FIGURE, self.aplot, restricted=(restricted or self.overlay_var.get()))
@@ -2958,8 +2961,9 @@ class dcaMOL:
         wid = self.root.winfo_width()
         #print hei,wid
 
-        self.root.minsize(775,700)
-        self.root.aspect(620, 530, 620, 530)
+#        self.root.minsize(820,700)
+#        self.root.aspect(620, 530, 620, 530)
+        self.root.grid_propagate(0)
         #self.PLOT_CANVAS_HEIGHT = self.content.winfo_height()
         self.root.bind('<Configure>', self.resize)
 
