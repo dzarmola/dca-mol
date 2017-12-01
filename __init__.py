@@ -487,7 +487,20 @@ class dcaMOL:
         self.root.bind("<ButtonRelease-1>", lambda *args: (self.HELD_LMB.set(0),self.recalcTPrate() if  "Single" in self.map_structure_mode.get() and args[0].widget in [self.slider_min,self.spin_comp_distance] else None))
 
         self.content = Tk.Frame(self.root)
-        self.upper_bar = Tk.Frame(self.content,borderwidth=1, relief="sunken")
+
+        self.upper_bar_overall = Tk.Frame(self.content, borderwidth=0)
+        self.upper_bar_canvas = Tk.Canvas(self.upper_bar_overall, borderwidth=0)
+        self.upper_bar = Tk.Frame(self.upper_bar_canvas, borderwidth=1, relief="sunken")
+        self.upper_bar_scroll = Tk.Scrollbar(self.upper_bar_overall, orient="horizontal",
+                                            command=self.upper_bar_canvas.xview)
+        self.upper_bar_canvas.configure(xscrollcommand=self.upper_bar_scroll.set)
+        self.upper_bar_canvas.grid(row=0, column=0, sticky="we")
+        self.upper_bar_scroll.grid(row=1, column=0, sticky='we')
+        self.upper_bar_canvas.create_window((0, 0), window=self.upper_bar, anchor="nw",
+                                           tags="self.upper_bar")
+        self.upper_bar.bind("<Configure>", self.onUpperBarConfigure)
+
+        #self.upper_bar = Tk.Frame(self.content,borderwidth=1, relief="sunken")
 
         self.left_bar_overall = Tk.Frame(self.content, borderwidth=0)
         self.left_bar_canvas = Tk.Canvas(self.left_bar_overall, borderwidth=0)
@@ -506,7 +519,7 @@ class dcaMOL:
 
         self.content.grid(column=0, row=0,sticky="NEWS")
         self.mode_frame.grid(column=0,row=0)
-        self.upper_bar.grid(column=1, row=0,sticky='W')
+        self.upper_bar_overall.grid(column=1, row=0,sticky='W')
         self.left_bar_overall.grid(column=0, row=1,sticky="N")
         self.plot_field.grid(column=1,row=1,sticky="NWSE")
 
@@ -809,6 +822,11 @@ class dcaMOL:
         #print "Firing in frame", event.width, event.height
         self.left_bar_canvas.configure(height=event.height,width=event.width)
         self.left_bar_canvas.configure(scrollregion=self.left_bar_canvas.bbox("all"))
+    def onUpperBarConfigure(self, event):
+        '''Reset the scroll region to encompass the inner frame'''
+        #print "Firing in frame", event.width, event.height
+        self.upper_bar_canvas.configure(height=event.height,width=event.width)
+        self.upper_bar_canvas.configure(scrollregion=self.upper_bar_canvas.bbox("all"))
 
 
     """def onLeftBarCanvasConfigure(self, event):
@@ -2919,6 +2937,7 @@ class dcaMOL:
     def resize(self, event):
         try:
             self.left_bar_canvas.configure(height=self.plot_field.winfo_height()-10)
+            self.upper_bar_canvas.configure(width=self.plot_field.winfo_width()-10)
         except Tk.TclError:
             pass
         #size = min(self.plot_field.winfo_height(), self.plot_field.winfo_width())-2
