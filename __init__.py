@@ -287,7 +287,7 @@ class dcaMOL:
 
 
         self.loader_window = Tk.Toplevel(self.parent)
-        self.loader_window.wm_title("This will someday be the dcaMOL")
+        self.loader_window.wm_title("Welcome to dcaMOL")
 
         self.root = Tk.Toplevel(self.parent)
         self.root.withdraw()
@@ -1332,6 +1332,15 @@ class dcaMOL:
         root = self.loader_window
         root.title("Starting dcaMOL")
 
+        self.image = Tk.PhotoImage(file="logo_100_bgd.png")
+        logoRow = Tk.Frame(self.loader_window)
+        logoRow.grid(row=0,column=0,columnspan=2)
+        label_img = Tk.Label(master=logoRow,image=self.image)
+        label_img.grid(row=0,column=0)
+        label_name = Tk.Label(master=logoRow,text="DCA-MOL")
+        label_name.grid(row=0,column=1)
+
+
         but_la_label = Tk.StringVar()
         but_la_label.set("Load alignment")
         but_ld_label = Tk.StringVar()
@@ -1374,19 +1383,19 @@ class dcaMOL:
         but_ld_label.set("Load DI scores")
 
         but_la = Tk.Button(root, textvariable=but_la_label, command=load_alignment)
-        but_la.grid(row=0,column=0,columnspan=2)
+        but_la.grid(row=1,column=0,columnspan=2)
 
         but_ld = Tk.Button(root, textvariable= but_ld_label, command=load_discores)
-        but_ld.grid(row=1,column=0,columnspan=2)
+        but_ld.grid(row=2,column=0,columnspan=2)
 
         #starter0 = Tk.Button(root, text="Start analyzing!", command=self.start_plot)
         starter0 = Tk.Button(root, text="Start analysis\n(single state)", command=lambda: self.start_plot(0))
         starter0.config(state="disabled")
-        starter0.grid(row=2,column=0)
+        starter0.grid(row=3,column=0)
 
         starter1 = Tk.Button(root, text="Start analysis\n(multi state)", command=lambda: self.start_plot(1))
         starter1.config(state="disabled")
-        starter1.grid(row=2,column=1)
+        starter1.grid(row=3,column=1)
 
         if self.alignment.get() and self.discores.get():
             but_la_label.set("Load alignment from {}".format(shorten(self.alignment)))
