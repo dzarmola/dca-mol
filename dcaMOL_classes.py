@@ -1,7 +1,7 @@
 from needle import pairwise_prot as nw_prot
 from needle import pairwise_rna as nw_rna
 from needle import sekwencja as Sekwencja
-from needle import consensus
+from needle import consensus, allowed_characters_prot, allowed_characters_rna
 
 from math import sqrt
 try:
@@ -26,6 +26,12 @@ nw = nw_prot
 
 WC_PAIRS = [ "GC","CG","AU","UA","AT","TA"]
 OTHER_PAIRS = ["GU","UG"]
+
+class RetryError(Exception):
+    pass
+
+class ResetError(Exception):
+    pass
 
 class RMB_menu:
     def __init__(self,root,master,var):
@@ -322,18 +328,32 @@ class Translation:
         # print ualignseq
         # print structseq
         # print nw
-        if splits is None:
-            (uaseq, sseq), _ = nw(ualignseq, structseq)
-        elif not splits[0]:  # Im feeling lucky
-            (uaseq, sseq), _ = nw(ualignseq, structseq)
+        try:
+            if splits is None:
+                (uaseq, sseq), _ = nw(ualignseq, structseq)
+            elif not splits[0]:  # Im feeling lucky
+                (uaseq, sseq), _ = nw(ualignseq, structseq)
 
-        else:  # user-specified
-            ualignseqs = [x.replace(".", "-").replace("-", "") for x in splits[0]]
-            _tmp = [0] + splits[1] + [0]
-            structseqs = [x for x in [structseq[sum(_tmp[:i]):sum(_tmp[:i + 1])] for i in xrange(len(_tmp))] if x]
-            uaseq, sseq = zip(*(nw(x, y)[0] for x, y in zip(ualignseqs, structseqs)))
-            uaseq, sseq = map(lambda a: "".join(a), (uaseq, sseq))
-        _cnt = 0
+            else:  # user-specified
+                ualignseqs = [x.replace(".", "-").replace("-", "") for x in splits[0]]
+                _tmp = [0] + splits[1] + [0]
+                structseqs = [x for x in [structseq[sum(_tmp[:i]):sum(_tmp[:i + 1])] for i in xrange(len(_tmp))] if x]
+                uaseq, sseq = zip(*(nw(x, y)[0] for x, y in zip(ualignseqs, structseqs)))
+                uaseq, sseq = map(lambda a: "".join(a), (uaseq, sseq))
+            _cnt = 0
+        except TypeError:
+            if Structure.already_swapped:
+                tkMessageBox.showerror("Error",""""Your sequence or structure contains some nonstandard residues which cannot be properly interpreted.
+Check if either your alignment or PyMOL read sequence of the structure contains character not on this list:
+    {} (protein)\n
+or\n
+    {} (nucleic acid).""".format(allowed_characters_prot, allowed_characters_rna))
+                raise ResetError
+            retry = tkMessageBox.askokcancel("Warning",""""It looks as if you selected wrong type of polymer (protein/nucleic acid)
+compared to the uploaded structure. Do you want to swap analysis type?
+(Selecting "OK" will change analysis type and retry ; "CANCEL" resets the program)""")
+            raise RetryError if retry else ResetError
+
         uaseq,sseq = mapping(uaseq,sseq,me.seqName,me.objId)
 
 
@@ -370,6 +390,18 @@ class Translation:
 
     def p2s(self, residues, structseq):
         self.structseq2cmap=[]
+        if not residues and not Structure.isRNA:
+            if Structure.already_swapped:
+                tkMessageBox.showerror("Error",""""Your sequence or structure contains some nonstandard residues which cannot be properly interpreted.\n
+Check if either your alignment or PyMOL read sequence of the structure contains character not on this list:\n
+    {} (protein)\n
+or\n
+    {} (nucleic acid).""".format(allowed_characters_prot, allowed_characters_rna))
+                raise ResetError
+            retry = tkMessageBox.askokcancel("Warning",""""It looks as if you selected wrong type of polymer (protein/nucleic acid)\n
+compared to the uploaded structure. Do you want to swap analysis type?\n
+(Selecting "OK" will change analysis type and retry ; "CANCEL" resets the program)""")
+            raise RetryError if retry else ResetError
         if Structure.isRNA:
             fseq = lambda x: x[-1]
         else:
@@ -528,6 +560,7 @@ class Structure:
     isRNA = False #must be boolean
     mode_rna = "C1'"
     available_modes_rna = ["C1'","C4'","O5'","All heavy atoms","Canonical base pairing"] #TODO N1/N9 purine/pyrimidine?
+    already_swapped=False
 
     def __init__(self, objId, chain, seqName, sequence,keep_others=False,further_structs=False,splits=None):
         verify_nw()
@@ -1470,6 +1503,6 @@ class Structure:
         plt.setp(n.get_xticklabels(), visible=False)
         #plt.subplots_adjust(hspace=0, wspace=0)
         hmap.tick_params(axis='y')
-        plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0.01, hspace=0.01)
-
+        #plt.subplots_adjust(left=0.3, bottom=0.3, right=1, top=1, wspace=0.01, hspace=0.01)
+        plt.subplots_adjust(left=0.07, bottom=0.05, right=0.97, top=0.97, wspace=0.01, hspace=0.01)
         return [m, n]

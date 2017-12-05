@@ -59,6 +59,9 @@ gapcont = gapcont_prot
 matrix = matrix_prot
 matrix_pair = matrix_pair_prot
 
+allowed_characters_prot = "".join(sorted(list(set(zip(*matrix_prot.keys())[0]))))
+allowed_characters_rna = "".join(sorted(list(set(zip(*matrix_rna.keys())[0]))))
+
 
 def pairwise_prot(ss1,ss2):
     global gappen
@@ -82,7 +85,7 @@ def try_pairwise(ss1,ss2):
     try:
         return pairwise(ss1,ss2)
     except KeyError:
-        raise RuntimeError("""There was a problem with similarity matrix during alignment. 
+        raise TypeError("""There was a problem with similarity matrix during alignment. 
         Are you sure selected sequence and structure are o the same polymer (protein/nucleic acid) type?""")
 
 

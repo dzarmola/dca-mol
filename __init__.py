@@ -1,4 +1,4 @@
-import os, glob
+import os, glob,re
 from math import sqrt
 import ntpath
 from copy import copy
@@ -16,6 +16,7 @@ import getpass
 #3: edu
 from distutils.spawn import find_executable
 LATEX_FOUND = find_executable('latex')
+safe_oname_re = re.compile(r"\ |\(|\)|\||\&|\!|\,")
 
 
 
@@ -1582,6 +1583,7 @@ class dcaMOL:
 
         def read_one_row(i, row_num):
             taken_ids = cmd.get_object_list('(all)')
+            print taken_ids
             keep_others = similar_vars[i].get()
             appendix = ""
             chain = chains_vars[i][row_num].get()
@@ -1596,11 +1598,12 @@ class dcaMOL:
                 mapping_id = [name, chain, keep_others, False]
             elif filenames_vars[i][row_num][0].get() not in ["Load local file", ""]:
                 print "Loading from file", i
-                nid = ntpath.splitext(ntpath.basename(filenames_vars[i][row_num][0].get()))[0]
+                nid = safe_oname_re.sub("",ntpath.splitext(ntpath.basename(filenames_vars[i][row_num][0].get()))[0])+"_"+chain
                 while nid + appendix in taken_ids:
                     appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
                 cmd.load(filenames_vars[i][row_num][0].get(), nid + appendix)  # TODO: obj name as seq
-                mapping_id = [nid + appendix, chain, keep_others, False]
+                tmp = cmd.get_object_list('(all)')[-1]
+                mapping_id = [tmp, chain, keep_others, False]
                 # mapping[id]=[".".join(filenames_vars[i].get().split("/")[-1].split(".")[:-1]),chains_vars[i].get()]
                 # added = cmd.get_object_list('(all)')[-1]
                 # cmd.split_chains(added)
@@ -1722,7 +1725,7 @@ class dcaMOL:
             else:
                 user_accepted = 1
         for id in mapping.keys():
-            if mapping[id] is None:
+            if mapping[id] is None or not mapping[id]:
                 del mapping[id]
                 continue
             if mapping[id][-1]:
@@ -2801,14 +2804,32 @@ class dcaMOL:
 
             #if self.is_rna.get():
             #    self.confirm_if_rna()
+            dm.Structure.already_swapped = 0
             if self.is_rna.get():
                 dm.Structure.isRNA = True
                 dm.Structure.mode = dm.Structure.available_modes_rna[0]
             else:
                 dm.Structure.isRNA = False
                 dm.Structure.mode = dm.Structure.available_modes[0]
-            for seq, dane in importantSeqs.items():
-                self.STRUCTURES.append(dm.Structure(dane[1], dane[2], seq, dane[0], dane[3], dane[4], splits=dane[-1]))
+
+            try:
+                for seq, dane in importantSeqs.items():
+                    self.STRUCTURES.append(dm.Structure(dane[1], dane[2], seq, dane[0], dane[3], dane[4], splits=dane[-1]))
+            except dm.ResetError:
+                self._reset()
+            except dm.RetryError:
+                dm.Structure.already_swapped = 1
+                self.STRUCTURES = []
+                if not dm.Structure.isRNA:
+                    dm.Structure.isRNA = True
+                    dm.Structure.mode = dm.Structure.available_modes_rna[0]
+                    self.is_rna.set(1)
+                else:
+                    dm.Structure.isRNA = False
+                    dm.Structure.mode = dm.Structure.available_modes[0]
+                    self.is_rna.set(0)
+                for seq, dane in importantSeqs.items():
+                    self.STRUCTURES.append(dm.Structure(dane[1], dane[2], seq, dane[0], dane[3], dane[4], splits=dane[-1]))
 
 
         _num = 1
@@ -2920,6 +2941,7 @@ class dcaMOL:
         mpl.colorbar.ColorbarBase(self.cmap_ax, cmap=self.cmapa,
                                   norm=self.norm,
                                   orientation='vertical')
+        plt.subplots_adjust(left=0.07, bottom=0.05, right=0.97, top=0.97, wspace=0.01, hspace=0.01)
         self.cmap_canvas.draw()
         self.canvas.draw()
 
