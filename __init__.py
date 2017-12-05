@@ -248,8 +248,8 @@ class dcaMOL:
 
         self.user = "".join(getpass.getuser().split())
 
-
-        self.path = "{}/temp/".format(os.path.dirname(os.path.realpath(__file__)))
+        self.location = os.path.dirname(os.path.realpath(__file__))
+        self.path = "{}/temp/".format(self.location)
         self.default_cmap = "rainbow"
         self.SHOW_INTER_AS_VALENCE = False
         self.default_tpa_color = "pink"
@@ -1332,7 +1332,7 @@ class dcaMOL:
         root = self.loader_window
         root.title("Starting dcaMOL")
 
-        self.image = Tk.PhotoImage(file="logo_100_bgd.png")
+        self.image = Tk.PhotoImage(file="{}/logo_100_bgd.png".format(self.location))
         logoRow = Tk.Frame(self.loader_window)
         logoRow.grid(row=0,column=0,columnspan=2)
         label_img = Tk.Label(master=logoRow,image=self.image)
