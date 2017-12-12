@@ -1333,7 +1333,7 @@ class dcaMOL:
         root = self.loader_window
         root.title("Starting dcaMOL")
 
-        self.image = Tk.PhotoImage(file="{}/logo_100_bgd.png".format(self.location))
+        self.image = Tk.PhotoImage(file="{}/logo_100_bgd.gif".format(self.location))
         logoRow = Tk.Frame(self.loader_window)
         logoRow.grid(row=0,column=0,columnspan=2)
         label_img = Tk.Label(master=logoRow,image=self.image)
