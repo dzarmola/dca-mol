@@ -79,7 +79,7 @@ for path in potential_paths:
         sys.path.append(path)
 
         import matplotlib as mpl
-        mpl.use('TkAgg')
+        mpl.use('TkAgg',warn=False,force=True)
         #mpl.use('Qt4Agg')
         mpl.rc('font', family='Arial')
         from matplotlib import patches, colors
