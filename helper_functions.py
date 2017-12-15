@@ -130,12 +130,12 @@ def find_continuous(lista,ch=False):
 
 def find_regions(lista):
     lista = sorted(list(set(lista)))
-    chains = set(x[1] for x in lista)
+    chains = list(set(x[1] for x in lista))
     regions = []
-    print "lista",lista
-    print "chains are",chains
+    #print "lista",lista
+    #print "chains are",chains
     for ch in chains:
         regions+=find_continuous(map(lambda y: y[0],filter(lambda x: x[1]==ch,lista)),ch)
-    print "regions",regions
+    #print "regions",regions
     return regions,chains
 
