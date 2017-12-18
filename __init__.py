@@ -1601,7 +1601,7 @@ def __init__(self):
                         ks = Tk.Checkbutton(f, text="Keep chains with >90% identity", variable=similar_vars[-1],command=lambda i=len(iface_vars)-1: iface_vars[i].set((similar_vars[i].get()+1)%2))
                         ks.grid(row=row, column=6)
                         rf.append(ks)
-                    if False:#len(selected)>1:
+                    if len(selected)>1:
                         ic = Tk.Checkbutton(f, text="Part of an interface", variable=iface_vars[-1],command=lambda i=len(iface_vars)-1: similar_vars[i].set((iface_vars[i].get()+1)%2))
                         ic.grid(row=row, column=7)
                         rf.append(ic)
@@ -3486,7 +3486,7 @@ def __init__(self):
             self.root.bind('<Configure>', self.resize)
 
 
-            self.root.mainloop()
+    #        self.root.mainloop()
         def resize(self, event):
             try:
                 self.left_bar_canvas.configure(height=self.plot_field.winfo_height()-10)
