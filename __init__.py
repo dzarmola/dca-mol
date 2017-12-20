@@ -780,9 +780,11 @@ def __init__(self):
 
             Tk.Label(self.legend, text="Secondary structure plot:").grid(column=0,row=0,sticky="W",columnspan=2)
             Tk.Label(self.legend, text="Alpha helix").grid(column=0,row=1)
-            Tk.Label(self.legend, foreground="red",text=ur'\u221D \ \u056E').grid(column=1,row=1)
+            Tk.Label(self.legend, foreground="red",text=ur'\u03B1').grid(column=1,row=1)
+            #Tk.Label(self.legend, foreground="red",text=ur'\u221D \ \u056E').grid(column=1,row=1)
             Tk.Label(self.legend, text="Beta sheet").grid(column=0,row=2)
-            Tk.Label(self.legend, foreground="blue",text=ur'\u21D1 \ \u21D2').grid(column=1,row=2)
+            Tk.Label(self.legend, foreground="blue",text=ur'\u03B2').grid(column=1,row=2)
+            #Tk.Label(self.legend, foreground="blue",text=ur'\u21D1 \ \u21D2').grid(column=1,row=2)
             Tk.Label(self.legend, text="Missing residue").grid(column=0,row=3)
             Tk.Label(self.legend, foreground="gray",text="X").grid(column=1,row=3)
 
@@ -1610,9 +1612,14 @@ def __init__(self):
                 # if self.overall_mode == 1:
                 #    keep_gay_utopia[-1]['state'] = Tk.DISABLED
                 if row == 0:
-                    a = Tk.Button(f, text="Add more structures to this seq",
-                                  command=lambda vars=(f, seqid, index): add_row(*vars))
-                    a.grid(row=row, column=8)
+                    if self.overall_mode == 1:
+                        a = Tk.Button(f, text="Add more states",
+                                      command=lambda vars=(f, seqid, index): add_row(*vars))
+                        a.grid(row=row, column=9)
+                    else:
+                        a = Tk.Button(f, text="Add more structures",
+                                      command=lambda vars=(f, seqid, index): add_row(*vars))
+                        a.grid(row=row, column=8)
                 elif row == 1:
                     a = Tk.Button(f, text="Delete this row",
                                   command=lambda vars=(f, index): del_row(vars))
@@ -1623,39 +1630,48 @@ def __init__(self):
                 #row_frame.grid(row=row,column=0)
                 frames[index].append(rf)
 
-            def read_one_row(i, row_num):
+            def read_one_row(i, row_num,name = ''):
                 taken_ids = cmd.get_object_list('(all)')
                 #print taken_ids
                 keep_others = similar_vars[i].get()
                 appendix = ""
                 chain = chains_vars[i][row_num].get()
+                mapping_id = None
                 if loaded_vars[i] and loaded_vars[i][row_num].get() != "Select already loaded":
                     print "Loading from aleardy in", i
                     lv = loaded_vars[i][row_num].get()
-                    name = "DM_" + lv + appendix
-                    while name in taken_ids:
-                        appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
+
+                    if not name:
                         name = "DM_" + lv + appendix
+                        while name in taken_ids:
+                            appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
+                            name = "DM_" + lv + appendix
+                        mapping_id = [name, chain, keep_others, False, iface_vars[i]]
                     cmd.copy(name, lv)
-                    mapping_id = [name, chain, keep_others, False, iface_vars[i]]
+
                 elif filenames_vars[i][row_num][0].get() not in ["Load local file", ""]:
                     print "Loading from file", i
-                    nid = safe_oname_re.sub("",ntpath.splitext(ntpath.basename(filenames_vars[i][row_num][0].get()))[0])+"_"+chain
-                    while nid + appendix in taken_ids:
-                        appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
-                    cmd.load(filenames_vars[i][row_num][0].get(), nid + appendix)  # TODO: obj name as seq
-                    tmp = cmd.get_object_list('(all)')[-1]
-                    mapping_id = [tmp, chain, keep_others, False, iface_vars[i]]
+                    if not name:
+                        nid = safe_oname_re.sub("",ntpath.splitext(ntpath.basename(filenames_vars[i][row_num][0].get()))[0])+"_"+chain
+                        while nid + appendix in taken_ids:
+                            appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
+                        name = nid+appendix
+                        mapping_id = [name, chain, keep_others, False, iface_vars[i]]
+                    cmd.load(filenames_vars[i][row_num][0].get(), name)  # TODO: obj name as seq
+                    #tmp = cmd.get_object_list('(all)')[-1]
+
                     # mapping[id]=[".".join(filenames_vars[i].get().split("/")[-1].split(".")[:-1]),chains_vars[i].get()]
                     # added = cmd.get_object_list('(all)')[-1]
                     # cmd.split_chains(added)
                 elif entries_vars[i][row_num].get() not in ["PDB ID",""]:
-                    nid = safe_oname_re.sub("", entries_vars[i][row_num].get()) + "_" + chain
-                    while nid + appendix in taken_ids:
-                        appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
-                    print "Fetching for", i
-                    cmd.fetch(entries_vars[i][row_num].get(), nid + appendix)
-                    mapping_id = [nid + appendix, chain, keep_others, False, iface_vars[i]]
+                    if not name:
+                        nid = safe_oname_re.sub("", entries_vars[i][row_num].get()) + "_" + chain
+                        while nid + appendix in taken_ids:
+                            appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
+                        print "Fetching for", i
+                        name = nid+appendix
+                        mapping_id = [name, chain, keep_others, False, iface_vars[i]]
+                    cmd.fetch(entries_vars[i][row_num].get(),name)
                 else:
                     print "No selection for ", i, row_num
                     mapping_id = None
@@ -1670,9 +1686,11 @@ def __init__(self):
                         return
 
                     mapping_id = []
+                    name = ''
                     for x in xrange(cnt_vars[i] + 1):
-                        row = read_one_row(i, x)
+                        row = read_one_row(i, x, name=name)
                         if row is not None:
+                            if self.overall_mode and not name: name = row[0]
                             mapping_id.append(row)
                     if len(mapping_id) == 1:
                         mapping_id = mapping_id[0]
@@ -2052,9 +2070,36 @@ def __init__(self):
                 self.window_of_selected_bonds.withdraw()
         def update_list_of_bonds(self):  ###TODO z okazji interfaceu
             #self.window_of_selected_bonds_text.set("")
+
             self.window_of_selected_bonds_text.config(state=Tk.NORMAL)
             self.window_of_selected_bonds_text.delete('1.0',Tk.END)
             # print "Updating"
+            def get_dist(a1,a2):
+                if "c." in a1:
+                    return "%5.3f" % cmd.get_distance(a1,a2)
+                else:
+                    atom = "and name CA and elem C" if not dm.Structure.isRNA else "and name P and elem P"
+                    if self.interface_mode.get():
+                        at1 = "{} and c. {} and i. {} {}".format(self.current_structure_obj_var.struct_1.objId,
+                                                                 self.current_structure_obj_var.struct_1.chain_simple,
+                                                                 a1.strip(self.current_structure_obj_var.struct_1.chain_simple),
+                                                                 atom)
+                        at2 = "{} and c. {} and i. {} {}".format(self.current_structure_obj_var.struct_2.objId,
+                                                                 self.current_structure_obj_var.struct_2.chain_simple,
+                                                                 a2.strip(
+                                                                     self.current_structure_obj_var.struct_2.chain_simple),
+                                                                 atom)
+                        #print at1,at2,cmd.get_distance(at1,at2)
+                    else:
+                        #print "Nope",a1,a2
+                        at1 = "{} and c. {} and i. {} {}".format(self.current_structure_obj_var.objId, a1[-1], a1[:-1],
+                                                                 atom)
+                        at2 = "{} and c. {} and i. {} {}".format(self.current_structure_obj_var.objId, a2[-1], a2[:-1],
+                                                                 atom)
+                        #raise IndexError("Nope")
+                    return "%5.3f" % cmd.get_distance(at1,at2)
+
+
             def get_res(s):
                 try:
                     i = s.split("i. ")[1].split()[0]
@@ -2067,9 +2112,11 @@ def __init__(self):
             #print self.DRAWN_BONDS
             for x in self.DRAWN_BONDS:
                 if x[0][:5] == "dist_":
-                    text+="{}\t{}\n".format(x[1],x[2])
+                    #print "dist",x,
+                    text+="{}\t{}\t{}\n".format(x[1],x[2],get_dist(x[1],x[2]))
                 else:
-                    text+="\t".join(map(get_res, x[:2]))+"\n"
+                    y=map(get_res, x[:2])
+                    text+="\t".join(y+[get_dist(*x[:2])])+"\n"
             #text += "\n".join( "\t".join(map(get_res, x[:2])) for x in self.DRAWN_BONDS)
             #print text
             #self.window_of_selected_bonds_text.set(text[:-1])#.insert(Tk.END,text)
@@ -2427,7 +2474,8 @@ def __init__(self):
                 self.recolor_by_any_trueness.set(False)
                 self.overlay_var.set(0)
                 self.aplot.invert_yaxis()
-
+                self.aplot.set_xlabel("")
+                self.aplot.set_ylabel("")
                 self.canvas.draw()
                 self.customToolbar.update()
             mpl.colorbar.ColorbarBase(self.cmap_ax, cmap=self.cmapa,
@@ -2492,6 +2540,29 @@ def __init__(self):
                                     #(TPrate*100./len(self.data[np.triu(self.data)>self.slider_min.get()])))
                     self.TP_frame.grid(column=1, row=0, padx=10)
 
+
+        def tick_formatter_x(self,tick_val,tick_pos):
+            return str(self.tick_formatter(int(tick_val),tick_pos,1))
+        def tick_formatter_y(self,tick_val,tick_pos):
+            return str(self.tick_formatter(int(tick_val),tick_pos,0))
+
+        def tick_formatter(self,tick_val,tick_pos,x=1):
+            try:
+                if self.interface_mode.get():
+                    if x:
+                        return self.current_structure_obj_var.struct_1.translations.struct2pdb(tick_val)
+                    else:
+                        return self.current_structure_obj_var.struct_2.translations.struct2pdb(tick_val)
+                elif self.restrict_to_structure_var.get() or self.overlay_var.get():
+                    #print "was", tick_val, "is", self.current_structure_obj_var.translations.struct2pdb(tick_val)
+                    return self.current_structure_obj_var.translations.struct2pdb(tick_val)
+
+                else:
+                    return self.current_structure_obj_var.translations.singleplot_cursor(tick_val)
+                    #return tick_val
+            except IndexError:
+                return ""
+
         def makeDSplot(self,overlay=0):
             if overlay:
                 self.ds_normal.set(0)
@@ -2503,6 +2574,8 @@ def __init__(self):
             self.SS_plots = []
             self.aplot = plt.subplot2grid((60, 60), (1, 5), colspan=54,
                                           rowspan=54)  # ,fig=FIGURE)#,fig=0)#FIGURE)#    add_subplot(211)
+            self.aplot.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(self.tick_formatter_x))
+            self.aplot.yaxis.set_major_formatter(mpl.ticker.FuncFormatter(self.tick_formatter_y))
             my_struct = self.current_structure_obj_var
             if overlay:
                 data2 = my_struct.makeOLarray(self.DATA_BACKUP, distance=self.comp_distance.get(), restricted=True,
@@ -2599,6 +2672,8 @@ def __init__(self):
             restricted = self.restrict_to_structure_var.get()
             self.aplot = plt.subplot2grid((60, 60), (1, 5), colspan=54,
                                      rowspan=54)  # ,fig=FIGURE)#,fig=0)#FIGURE)#    add_subplot(211)
+            self.aplot.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(self.tick_formatter_x))
+            self.aplot.yaxis.set_major_formatter(mpl.ticker.FuncFormatter(self.tick_formatter_y))
             my_struct = self.current_structure_obj_var
                 #[x for x in self.STRUCTURES if x.objId in self.map_structure_mode.get().split(": ")[-1]][0]
 
@@ -2706,6 +2781,12 @@ def __init__(self):
                 self.draw_selected_patch(patch)
                 self.bonds_in_patches(patch[0],patch[1],[self.current_structure_obj_var],0)
             self.aplot.invert_yaxis()#set_ylim(self.aplot.get_ylim()[::-1])
+            #if self.restrict_to_structure_var.get() or self.overlay_var.get():
+            self.aplot.set_xlabel("{} chain {}".format(my_struct.objId, my_struct.chain_simple))
+            self.aplot.set_ylabel("{} chain {}".format(my_struct.objId, my_struct.chain_simple))
+            #else:
+            #    self.aplot.set_xlabel("{}".format(my_struct.seqName[:15]+"(...)" if len(my_struct.seqName)>15 else ""))
+            #    self.aplot.set_ylabel("{}".format(my_struct.seqName[:15]+"(...)" if len(my_struct.seqName)>15 else ""))
             self.canvas.draw()
             self.customToolbar.update()
 
@@ -3486,7 +3567,7 @@ def __init__(self):
             self.root.bind('<Configure>', self.resize)
 
 
-    #        self.root.mainloop()
+            self.root.mainloop()
         def resize(self, event):
             try:
                 self.left_bar_canvas.configure(height=self.plot_field.winfo_height()-10)

@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 #import matplotlib as mpl
 import tkMessageBox
 
-from pymol import cmd,preset
+from pymol import cmd,preset,util
 
 from helper_functions import minRMSD,RMSD,similarEnough
 
@@ -552,9 +552,10 @@ compared to the uploaded structure. Do you want to swap analysis type?\n
             #print sid, self.structseq2pdb
             return self.structseq2pdb[sid]
         except TypeError:
+            #print self.structseq2pdb,len(self.structseq2pdb)
             return None
         except:
-            print sid, self.structseq2pdb
+            #print sid, self.structseq2pdb
             raise IndexError
 
 
@@ -765,9 +766,9 @@ class Structure:
         with open(name.format("C1"), "w", 1) as output_C1, open(name.format("C4"), "w", 1) as output_C4, \
                 open(name.format("O5"), "w", 1) as output_O5, open(name.format("heavy"), "w", 1) as output_heavy, \
                 open(name.format("canonical"), "w", 1) as output_canon:
-            for stan in xrange(0, self.num_states, step if step else 1):
+            for stan in xrange(1, self.num_states+1, step if step else 1):
                 if progress:
-                    progress("State: {}/{}".format(stan + 1, self.num_states))
+                    progress("State: {}/{}".format(stan, self.num_states))
                     #                space = {'residues': []}
                     #                cmd.iterate_state(1, "( %s and %s )" % (self.objId, self.chain),
                     #                          "residues.append([name,resn,resv,alt,elem,q,ss,x,y,z])",
@@ -864,9 +865,9 @@ class Structure:
     def makeMultiStateContactFile_protein(self, step=False, progress=False):
         name =  Structure.temp_path + "/_temp_" + self.objId + "_{}.map"
         with open(name.format("CA"), "w", 1) as output_CA, open(name.format("CB"), "w", 1) as output_CB, open(name.format("heavy"), "w", 1) as output_heavy:
-            for stan in xrange(0,self.num_states, step if step else 1):
+            for stan in xrange(1,self.num_states+1, step if step else 1):
                 if progress:
-                    progress("State: {}/{}".format(stan+1,self.num_states))
+                    progress("State: {}/{}".format(stan,self.num_states))
 #                space = {'residues': []}
 #                cmd.iterate_state(1, "( %s and %s )" % (self.objId, self.chain),
 #                          "residues.append([name,resn,resv,alt,elem,q,ss,x,y,z])",
@@ -1540,7 +1541,7 @@ class DoubleStructure(Structure):
         self.longer = self.struct_1 if len(s1.translations.pdb2structseq)>len(s2.translations.pdb2structseq) else self.struct_2
         self.num_states = max(s1.num_states,s2.num_states)
         self.translate() #mapping will be between structural sequences from the PyMOL object
-
+        util.cbc('{} or {}'.format(s1.objId,s2.objId),quiet=1)
 
 
 
@@ -1606,9 +1607,9 @@ class DoubleStructure(Structure):
         with open(name.format("C1"), "w", 1) as output_C1, open(name.format("C4"), "w", 1) as output_C4, \
                 open(name.format("O5"), "w", 1) as output_O5, open(name.format("heavy"), "w", 1) as output_heavy, \
                 open(name.format("canonical"), "w", 1) as output_canon:
-            for stan in xrange(0, self.num_states, step if step else 1):
+            for stan in xrange(1, self.num_states+1, step if step else 1):
                 if progress:
-                    progress("State: {}/{}".format(stan + 1, self.num_states))
+                    progress("State: {}/{}".format(stan, self.num_states))
                     #                space = {'residues': []}
                     #                cmd.iterate_state(1, "( %s and %s )" % (self.objId, self.chain),
                     #                          "residues.append([name,resn,resv,alt,elem,q,ss,x,y,z])",
@@ -1732,9 +1733,9 @@ class DoubleStructure(Structure):
     def makeMultiStateContactFile_protein(self, step=False, progress=False):
         name =  Structure.temp_path + "/_temp_" + self.objId + "_{}.map"
         with open(name.format("CA"), "w", 1) as output_CA, open(name.format("CB"), "w", 1) as output_CB, open(name.format("heavy"), "w", 1) as output_heavy:
-            for stan in xrange(0,self.num_states, step if step else 1):
+            for stan in xrange(1,self.num_states+1, step if step else 1):
                 if progress:
-                    progress("State: {}/{}".format(stan+1,self.num_states))
+                    progress("State: {}/{}".format(stan,self.num_states))
 #                space = {'residues': []}
 #                cmd.iterate_state(1, "( %s and %s )" % (self.objId, self.chain),
 #                          "residues.append([name,resn,resv,alt,elem,q,ss,x,y,z])",
@@ -1887,9 +1888,11 @@ class DoubleStructure(Structure):
         gap = [idx + 0.5 for idx, s in enumerate(self.struct_1.residues) if s.ss == "."]
         m = plt.subplot2grid((60, 60), (55, 5), colspan=54, rowspan=5, sharex=hmap)
         m.plot(range(size1), [1 for x in xrange(size1)], color='grey')
-        m.plot(beta, [1] * len(beta), marker=ur'$\u21D2$', linestyle='None', color='blue')
+        m.plot(beta, [1] * len(beta), marker=ur'$\u03B2$', linestyle='None', color='blue')
+        #m.plot(beta, [1] * len(beta), marker=ur'$\u21D2$', linestyle='None', color='blue')
         # m.plot(beta, [1] * len(beta), 'y>')
-        m.plot(alpha, [1] * len(alpha), marker=ur'$\u03B4$', linestyle='None', color='red')
+        m.plot(alpha, [1] * len(alpha), marker=ur'$\u03B1$', linestyle='None', color='red')
+        #m.plot(alpha, [1] * len(alpha), marker=ur'$\u03B4$', linestyle='None', color='red')
         # m.plot(alpha, [1] * len(alpha), marker=ur'$\u056E$', linestyle='None',color='red')
         # m.plot(alpha, [1] * len(alpha), 'gv')
         m.plot(gap, [1] * len(gap), 'x', color='grey', linestyle='None')
@@ -1908,8 +1911,10 @@ class DoubleStructure(Structure):
         gap = [idx + 0.5 for idx, s in enumerate(self.struct_2.residues) if s.ss == "."]
         n = plt.subplot2grid((60, 60), (1, 0), colspan=5, rowspan=54, sharey=hmap)
         n.plot([1 for x in xrange(size2)], range(size2), color='grey')
-        n.plot([1] * len(beta), beta, linestyle='None', marker=ur'$\u21D1$', color='blue')  # E017 #221D
-        n.plot([1] * len(alpha), alpha, linestyle='None', marker=ur'$\u221D$', color='red')  # 10454
+        n.plot([1] * len(beta), beta, linestyle='None', marker=ur'$\u03B2$', color='blue')  # E017 #221D
+        #n.plot([1] * len(beta), beta, linestyle='None', marker=ur'$\u21D1$', color='blue')  # E017 #221D
+        #n.plot([1] * len(alpha), alpha, linestyle='None', marker=ur'$\u221D$', color='red')  # 10454
+        n.plot([1] * len(alpha), alpha, linestyle='None', marker=ur'$\u03B1$', color='red')  # 10454
         n.plot([1] * len(gap), gap, marker='x', linestyle='None', color='grey')
         n.set_xlim(0.9999, 1.000004)
         n.set_ylim([0, size2])
