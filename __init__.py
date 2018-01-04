@@ -1256,6 +1256,7 @@ def __init__(self):
                     self.configure_window.destroy()
 
             Tk.Button(master=self.configure_window, text='Save', command=_save_and_quit).grid(column=0, row=2)
+            self.configure_window.update_idletasks()
             self.configure_window.mainloop()
 
         def _make_new_TP_cmap(self,new_colors=[]):
@@ -1446,6 +1447,7 @@ def __init__(self):
 
         def ask_for_structures(self,headers, selected):
             self.sequence_selection_window = Tk.Toplevel(self.root)
+            self.parent.update_idletasks()
             self.sequence_selection_window.title("Select")
             Tk.Label(master=self.sequence_selection_window,text="For which sequence(s) from the alignment do you want to assign a structure?").grid(row=0,column=0,columnspan=2)
             sequence_selection = Tk.Listbox(self.sequence_selection_window, selectmode='multiple', exportselection=0,width=max(len(x) for x in headers))
@@ -1470,12 +1472,17 @@ def __init__(self):
             sequence_selection_scroll.config(command=sequence_selection.yview)
             sequence_selection_scroll.grid(row=1, column=2, sticky='ns')
             sequence_selection.config(yscrollcommand=sequence_selection_scroll.set)
-
+            
+            
             sel_button_protein = Tk.Button(master=self.sequence_selection_window, text='Proceed\n(protein)', command=lambda : get_selected(0))
             sel_button_rna = Tk.Button(master=self.sequence_selection_window, text='Proceed\n(RNA/DNA)', command=lambda : get_selected(1))
             sel_button_protein.grid(row=2,column=0)
             sel_button_rna.grid(row=2, column=1)
             #Tk.Button(self.sequence_selection_window, text="Go back", command=self._reset).grid(row=3,column=0,sticky="w")
+#            self.root.update()
+#            self.parent.update_idletasks()
+#            self.parent.update()
+            self.sequence_selection_window.update_idletasks()
             self.sequence_selection_window.mainloop()
 
         def read_pdb(self,variable, label):
@@ -1585,7 +1592,7 @@ def __init__(self):
                 filenames_vars[index] += [(Tk.StringVar(),Tk.StringVar())]
                 filenames_vars[index][row][1].set("Load local file")
                 fn = Tk.Button(f, textvariable=filenames_vars[index][row][1])
-                fn['command'] = lambda index=index: self.read_pdb(*filenames_vars[index][row])
+                fn['command'] = lambda index=index: (self.read_pdb(*filenames_vars[index][row]),self.structure_selection_window.lift())
                 fn.grid(row=row, column=4)
                 rf.append(fn)
                 if currently_present:
@@ -1726,6 +1733,7 @@ def __init__(self):
             sel_button.grid(column=0, row=len(selected))
             Tk.Button(self.structure_selection_window, text="Go back", command= \
                 lambda: (self.structure_selection_window.quit(),self.structure_selection_window.destroy())).grid(row=len(selected)+1, column=0, sticky="w")
+            self.structure_selection_window.update_idletasks()
             self.structure_selection_window.mainloop()
             return result_code.get()
 
@@ -1760,6 +1768,7 @@ def __init__(self):
             b.grid(row=2,column=0)
             b2 = Tk.Button(self.sequence_splits_window, text="Alternatively: Try your luck - we'll try to guess", command=lucky)
             b2.grid(row=3,column=0)
+            self.sequence_splits_window.update_idletasks()
             self.sequence_splits_window.mainloop()
 
         def read_in_alignment(self):
@@ -1821,6 +1830,7 @@ def __init__(self):
             vale.grid(row=1,column=0)
             vale.focus()
             Tk.Button(master=self.asker, text='Done', command=lambda: send_result(val)).grid(row=2,column=0)
+            self.asker.update_idletasks()
             self.asker.mainloop()
 
         def slider_min_change(self,*args):  # TODO - wywalic bondy ponizej wartosci
@@ -3567,7 +3577,7 @@ def __init__(self):
             self.root.bind('<Configure>', self.resize)
 
 
-            self.root.mainloop()
+#            self.root.mainloop()
         def resize(self, event):
             try:
                 self.left_bar_canvas.configure(height=self.plot_field.winfo_height()-10)
