@@ -494,6 +494,11 @@ def __init__(self):
 
             self.menubar.add_cascade(label="Multichain options", menu=self.MCmenu)
 
+            ### ----------------------------- REcalc menu
+            self.RCmenu = Tk.Menu(self.menubar)
+            self.RCmenu.add_command(label='All structures', command=self.recalcCmap, underline=0)
+            self.menubar.add_cascade(label="Recalculate contact maps", menu=self.RCmenu)
+
             ### END MENUBAR
 
     #        def mysza(dol=0,args=[]):
@@ -692,8 +697,8 @@ def __init__(self):
             self.spin_max_var_4cmap.set(str("%6f"% self.spin_max_var.get()))
             self.spin_min_var_4cmap = Tk.StringVar()
             self.spin_min_var_4cmap.set(str(0.001))
-            Tk.Label(cm_frame, width=6, textvariable=self.spin_max_var_4cmap).grid(column=0, row=1,sticky='W')
-            Tk.Label(cm_frame, width=6, textvariable=self.spin_min_var_4cmap).grid(column=0, row=3,sticky='W')
+            Tk.Label(cm_frame, width=8, textvariable=self.spin_max_var_4cmap).grid(column=0, row=1,sticky='W')
+            Tk.Label(cm_frame, width=8, textvariable=self.spin_min_var_4cmap).grid(column=0, row=3,sticky='W')
             gradient_frame_inner = Tk.Frame(gradient_frame)
             gradient_frame_inner.grid(column=0, row=0)
             #self.cmap_ax.matshow(gradient, aspect=20, cmap=self.cmapa)
@@ -3352,6 +3357,53 @@ def __init__(self):
             Tk.Button(rna_win, text="No", command=lambda: [self.is_rna.set(0), rna_win.quit(),rna_win.destroy()]).pack()
             rna_win.mainloop()"""
 
+        def recalcCmap(self,selected=None):
+            if selected is not None:
+                structure = self.STRUCTURES[selected]
+                self.wait("Calculating native contacts map for {}".format(structure.objId))
+                structure.makeMultiStateContactFile(progress=self._wait_in_progress)
+                structure.makeContactMap(self.current_state_var.get())
+                if self.overall_mode == 1:
+                    structure.makeAnyContactMaps()
+                if structure.chains_to_keep:
+                    self.wait("Calculating interchain contacts map for {}".format(structure.objId))
+                    structure.makeMultiChainContactFile(progress=self._wait_in_progress)
+                    structure.makeContactMap(self.current_state_var.get(),mchain=True)
+                self.wait_window.withdraw()
+
+                for double in self.DOUBLE_STRUCTURES:
+                    if structure in [double.struct_1,double.struct_2]:
+                        if double.maps.has_key(dm.Structure.flat_modes[dm.Structure.mode]):
+                            self.wait(
+                                "Calculating native contacts map for {}".format(double.objId))
+                            double.makeMultiStateContactFile(progress=self._wait_in_progress)
+                            # print [vars(i) for i in structure.residues]
+                            double.makeContactMap(self.current_state_var)
+                            double.wait_window.withdraw()
+            else:
+                for structure in self.STRUCTURES:
+                    self.wait("Calculating native contacts map for {}".format(structure.objId))
+                    structure.makeMultiStateContactFile(progress=self._wait_in_progress)
+                    structure.makeContactMap(self.current_state_var.get())
+                    if self.overall_mode == 1:
+                        structure.makeAnyContactMaps()
+                    if structure.chains_to_keep:
+                        self.wait("Calculating interchain contacts map for {}".format(structure.objId))
+                        structure.makeMultiChainContactFile(progress=self._wait_in_progress)
+                        structure.makeContactMap(self.current_state_var.get(),mchain=True)
+                    self.wait_window.withdraw()
+
+                for double in self.DOUBLE_STRUCTURES:
+                    if double.maps.has_key(dm.Structure.flat_modes[dm.Structure.mode]):
+                        self.wait(
+                            "Calculating native contacts map for {}".format(double.objId))
+                        double.makeMultiStateContactFile(progress=self._wait_in_progress)
+                        # print [vars(i) for i in structure.residues]
+                        double.makeContactMap(self.current_state_var)
+                        double.wait_window.withdraw()
+            self.plot_to_remember = True
+            self.makeSSplot()
+            self.plot_to_remember = None
 
         def start_plot(self, self_mode, *args):
             self.loader_window.withdraw()
@@ -3402,7 +3454,7 @@ def __init__(self):
 
             dm.Structure.temp_path = self.path
             _num = 1
-            for structure in self.STRUCTURES:
+            for idx,structure in enumerate(self.STRUCTURES):
                 self.OPCJE.append("Single structure: " + structure.objId)
                 #structure.temp_path = self.path
                 self.wait("Calculating native contacts map for {}".format(structure.objId))
@@ -3419,6 +3471,7 @@ def __init__(self):
                     structure.makeContactMap(1,mchain=True)
                 _num = max(_num, structure.num_states)
                 self.wait_window.withdraw()
+                self.RCmenu.add_command(label=structure.objId, command=lambda x=idx: self.recalcCmap(x))
             #print self.STRUCTURES
             for i,s1 in enumerate(self.STRUCTURES):
                 for s2 in self.STRUCTURES[i+1:]:
