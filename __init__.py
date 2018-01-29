@@ -1071,7 +1071,7 @@ def __init__(self):
             self.current_state_var.set(self.current_state_spin.get())
             cmd.set("state", self.current_state_var.get())
             if self.map_structure_mode.get() != self.OPCJE[0]:
-                self.makeSSplot()
+                self.makeSSplot(from_states=1)
         def css_key(self,event):
             self.LAST_HIT_KEY.set(event.keysym in ["Return", "KP_Enter", "Extended-Return"])
             self.state_change()
@@ -2657,6 +2657,9 @@ def __init__(self):
             if self.map_structure_mode.get() == self.OPCJE[0]:
                 return
             self.clear_pymol_bonds()
+            from_states = False
+            if "from_states" in kwargs:
+                from_states=1
             if self.plot_to_remember is None:
                 self.SELECTED_REGIONS = []
             elif 'from_overlay' in kwargs:
@@ -2714,7 +2717,7 @@ def __init__(self):
                 else:
                     heatmap = self.aplot.pcolorfast(data2, cmap=cmapa, norm=norm, vmin=0.)  # , vmax=vmax)
                 # self.wait_window.quit()
-                if not self.HELD_LMB.get():
+                if not self.HELD_LMB.get() or from_states:
                     self.recalcTPrate()
 
             elif (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):  # TODO recalc only on change
@@ -2751,7 +2754,7 @@ def __init__(self):
                 else:
                     heatmap = self.aplot.pcolorfast(data2, cmap=cmapa,norm=norm, vmin=0.)#, vmax=vmax)
                 #self.wait_window.quit()
-                if not self.HELD_LMB.get():
+                if not self.HELD_LMB.get() or from_states:
                     self.recalcTPrate()
             else:
                 if not self.comp_mode.get(): self.TP_frame.grid_forget()
