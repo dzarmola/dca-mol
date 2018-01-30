@@ -2786,7 +2786,7 @@ def __init__(self):
                                           norm=self.norm,
                                           orientation='vertical')
                 self.cmap_canvas.draw()
-                if not self.HELD_LMB.get():
+                if not self.HELD_LMB.get() or from_states:
                     self.recalcTPrate()
                 self.data2 = None
             #self.aplot.set_aspect('equal')
