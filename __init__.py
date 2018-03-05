@@ -2091,15 +2091,19 @@ def __init__(self):
             # print "Updating"
             def get_dist(a1,a2):
                 if "c." in a1:
-                    return "%5.3f" % cmd.get_distance(a1,a2)
+                    try:
+                        return "%5.3f" % cmd.get_distance(a1,a2)
+                    except pymol.CmdException:
+                        print "problem z updatem",a1,a2
+                        return ""
                 else:
                     atom = "and name CA and elem C" if not dm.Structure.isRNA else "and name P and elem P"
                     if self.interface_mode.get():
-                        at1 = "{} and c. {} and i. {} {}".format(self.current_structure_obj_var.struct_1.objId,
+                        at1 = "{} and c. {} and i. {} {} and (alt A or alt '')".format(self.current_structure_obj_var.struct_1.objId,
                                                                  self.current_structure_obj_var.struct_1.chain_simple,
                                                                  a1.strip(self.current_structure_obj_var.struct_1.chain_simple),
                                                                  atom)
-                        at2 = "{} and c. {} and i. {} {}".format(self.current_structure_obj_var.struct_2.objId,
+                        at2 = "{} and c. {} and i. {} {} and (alt A or alt '')".format(self.current_structure_obj_var.struct_2.objId,
                                                                  self.current_structure_obj_var.struct_2.chain_simple,
                                                                  a2.strip(
                                                                      self.current_structure_obj_var.struct_2.chain_simple),
@@ -2107,12 +2111,16 @@ def __init__(self):
                         #print at1,at2,cmd.get_distance(at1,at2)
                     else:
                         #print "Nope",a1,a2
-                        at1 = "{} and c. {} and i. {} {}".format(self.current_structure_obj_var.objId, a1[-1], a1[:-1],
+                        at1 = "{} and c. {} and i. {} {} and (alt A or alt '')".format(self.current_structure_obj_var.objId, a1[-1], a1[:-1],
                                                                  atom)
-                        at2 = "{} and c. {} and i. {} {}".format(self.current_structure_obj_var.objId, a2[-1], a2[:-1],
+                        at2 = "{} and c. {} and i. {} {} and (alt A or alt '')".format(self.current_structure_obj_var.objId, a2[-1], a2[:-1],
                                                                  atom)
                         #raise IndexError("Nope")
-                    return "%5.3f" % cmd.get_distance(at1,at2)
+                    try:
+                        return "%5.3f" % cmd.get_distance(at1,at2)
+                    except pymol.CmdException:
+                        print "problem z updatem2",a1,a2
+                        return ""
 
 
             def get_res(s):
@@ -2132,6 +2140,7 @@ def __init__(self):
                 else:
                     y=map(get_res, x[:2])
                     text+="\t".join(y+[get_dist(*x[:2])])+"\n"
+
             #text += "\n".join( "\t".join(map(get_res, x[:2])) for x in self.DRAWN_BONDS)
             #print text
             #self.window_of_selected_bonds_text.set(text[:-1])#.insert(Tk.END,text)
@@ -2835,24 +2844,37 @@ def __init__(self):
             tmp_color_name = "tmp_color_%d" % len(self.DRAWN_BONDS)
             cmd.set_color(tmp_color_name,"[ %.3f, %.3f, %.3f ]" % color[:3])
             others = self.mark_on_similar.get()
+            print 'obj is',obj
             obj,clist,cmap,idx_ref = obj if obj else (False,False,False)
-
+            print "Mark on similar is",others,'obj is',obj
             for c in clist:
+                print "doing now chain",c
                 for tmpi,chain in enumerate([c]+(cmap.get(c,[]) if others else [])):
+                    print "tmpi,chain",tmpi,chain
                     r1,r2 = res1,res2
                     if others and tmpi:
                         r1 += idx_ref[(c,chain)]
                         r2 += idx_ref[(c,chain)]
-                    cmd.bond("%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1),
-                                "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r2))
-                    cmd.select("tmp_select","%s i. %d+%d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1,r2))
+                    try:
+                        cmd.bond("%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1),
+                                "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r2))
+                    except pymol.CmdException:
+                        print "bond","%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1), \
+                                "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r2)
+                    try:    cmd.select("tmp_select","%s i. %d+%d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1,r2))
+                    except pymol.CmdException:
+                        print "tmp_select","%s i. %d+%d and (alt A or alt '')and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1,r2)
                     cmd.show("sticks","tmp_select")
-                    cmd.set_bond("stick_color",tmp_color_name, #str(color[:3]),
-                                 "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1),
-                                "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r2))
+                    try:
+                        cmd.set_bond("stick_color",tmp_color_name, #str(color[:3]),
+                                 "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1),
+                                "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r2))
+                    except:
+                        print "setbond","%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1), \
+                                "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r2)
                     cmd.deselect()
-                    self.DRAWN_BONDS.append(("%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1),
-                                "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r2), r1,r2,obj))
+                    self.DRAWN_BONDS.append(("%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1),
+                                "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r2), r1,r2,obj))
 
         def add_pymol_bond_to_object_iface(self,r1,r2,color):
             bonded_atom = "name CA and elem C"
@@ -2868,8 +2890,8 @@ def __init__(self):
 
             obj_name = "dist_{}".format(len(self.DRAWN_BONDS))
             #print c1,c2
-            cmd.distance(obj_name, "{} and c. {} and i. {} and {}".format(obj1, c1, r1, bonded_atom),
-                         "{} and c. {} and i. {} and {}".format(obj2, c2, r2, bonded_atom))
+            cmd.distance(obj_name, "{} and c. {} and i. {} and {} and (alt A or alt '')".format(obj1, c1, r1, bonded_atom),
+                         "{} and c. {} and i. {} and {} and (alt A or alt '')".format(obj2, c2, r2, bonded_atom))
             cmd.color(tmp_color_name, obj_name)
             cmd.hide("labels", obj_name)
             self.DRAWN_BONDS.append([obj_name, "{}{}".format(r1, c1), "{}{}".format(r2, c2)])
@@ -2910,10 +2932,10 @@ def __init__(self):
                         pairs_to_bond.append((c, chain, r1, r2))
                         pairs_to_bond.append((chain, c, r3, r4))
                     else:
-                        a1 = "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, c) if obj else "", r1)
-                        a2 = "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, chain) if obj else "", r2)
-                        a3 = "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, chain) if obj else "", r3)
-                        a4 = "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, c) if obj else "", r4)
+                        a1 = "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, c) if obj else "", r1)
+                        a2 = "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, chain) if obj else "", r2)
+                        a3 = "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, chain) if obj else "", r3)
+                        a4 = "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, c) if obj else "", r4)
                         din = cmd.distance("tmp", a1, a2)  # ,state=0)
                         dax = cmd.distance("tmp", a3, a4)  # ,state=0)
                         cmd.delete("tmp")
@@ -2926,38 +2948,39 @@ def __init__(self):
 
                 if self.SHOW_INTER_AS_VALENCE:
                     cmd.bond(
-                        "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, c) if obj else "", r1),
-                        "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, chain) if obj else "", r2),
+                        "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, c) if obj else "", r1),
+                        "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, chain) if obj else "", r2),
                         2)
                     cmd.select("tmp_select",
-                               "(%s i. %d and {}) or (%s i. %d and {})".format(bonded_atom,bonded_atom) % (
+                               "(%s i. %d and (alt A or alt '') and {}) or (%s i. %d and (alt A or alt '') and {})".format(bonded_atom,bonded_atom) % (
                                "{} and c. {} and ".format(obj, c)
                                if obj else "", r1, "{} and c. {} and ".format(obj, chain) if obj else "", r2))
                     cmd.show("sticks", "tmp_select")
                     cmd.set_bond("stick_color", tmp_color_name,  # str(color[:3]),
-                                 "%s i. %d and {}".format(bonded_atom) % (
+                                 "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % (
                                  "{} and c. {} and ".format(obj, c) if obj else "", r1),
-                                 "%s i. %d and {}".format(bonded_atom) % (
+                                 "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % (
                                  "{} and c. {} and ".format(obj, chain) if obj else "", r2))
                     #                    cmd.set_bond("valence",1, #str(color[:3]),
                     #                                 "%s i. %d and name CA and elem C" % ("{} and c. {} and ".format(obj,c) if obj else "", r1),
                     #                                "%s i. %d and name CA and elem C" % ("{} and c. {} and ".format(obj,chain) if obj else "", r2))
                     cmd.deselect()
                     self.DRAWN_BONDS.append(
-                        ("%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, c) if obj else "", r1),
-                         "%s i. %d and {}".format(bonded_atom) % (
+                        ("%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, c) if obj else "", r1),
+                         "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % (
                          "{} and c. {} and ".format(obj, chain) if obj else "", r2), r1, r2, obj))
                 else:
                     obj_name = "dist_{}".format(len(self.DRAWN_BONDS))
-                    cmd.distance(obj_name, "%s i. %d and {}".format(bonded_atom) % (
+                    cmd.distance(obj_name, "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % (
                     "{} and c. {} and ".format(obj, c) if obj else "", r1),
-                                 "%s i. %d and {}".format(bonded_atom) % (
+                                 "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % (
                                  "{} and c. {} and ".format(obj, chain) if obj else "", r2))
                     cmd.color(tmp_color_name, obj_name)
                     cmd.hide("labels", obj_name)
                     self.DRAWN_BONDS.append([obj_name,"{}{}".format(r1,c),"{}{}".format(r2,chain)])
 
         def clear_pymol_bonds(self):
+            print "should clean up, keep is set to",self.keep_shown_bonds_var.get()
             if self.keep_shown_bonds_var.get():
                 return
             for bond in self.DRAWN_BONDS:
@@ -3047,13 +3070,16 @@ def __init__(self):
                         color = self.get_bond_color(value)
     #                    color = cmap(value / scale) if cmap else self.binaryColormapColor(value)
     #                    print "Should add",sx,sy,color
-
+                        print "Adding bond",X,Y
                         if self.interface_mode.get():
                             self.add_pymol_bond_to_object_iface(sx,sy,color)
                         else:
                             self.add_pymol_bond(sx, sy, color, (structure.objId, structure.chain_list, structure.chain_map, structure.chain_idx_ref), mode=mode)
+                        print "Added bond", X, Y
+            print "Will update list"
             if single or self.interface_mode.get():
                 self.update_list_of_bonds()
+            print "updated list"
 
         def get_bond_color(self,value):
             #cmap = self.colormap.get()
@@ -3074,6 +3100,7 @@ def __init__(self):
 
 
         def redraw_bonds(self,*args):
+            print "redrawing bonds"
             self.clear_pymol_bonds()
             for X, Y, fp2 in self.SELECTED_REGIONS:
                 self.bonds_in_patches(X, Y, mode=(fp2 == "R"))
@@ -3245,21 +3272,17 @@ def __init__(self):
             sizeY0,sizeY1 = sorted(self.aplot.get_ylim())#len(self.data) + 1
             #print "held ctrl=",self.HELD_CTRL.get()
             if not self.HELD_CTRL.get():
-
-
+                self.clear_pymol_bonds()
+                for line in self.AXLINES:
+                    try:
+                        line.remove()
+                        del line
+                    except ValueError:
+                        pass
+                self.AXLINES = []
+                self.SELECTED_REGIONS = []
+                self.canvas.draw()
                 if self.SELECTED_REGIONS and self.LAST_CLICKED_POS[0]==final_pos[0] and self.LAST_CLICKED_POS[1]==final_pos[1]:
-                    self.clear_pymol_bonds()
-                    for line in self.AXLINES:
-                        try:
-                            line.remove()
-                            del line
-                        except ValueError:
-                            pass
-                            self.AXLINES = []
-
-
-                    self.SELECTED_REGIONS = []
-                    self.canvas.draw()
                     return
             #print "pres,release",self.LAST_CLICKED_POS,final_pos
 

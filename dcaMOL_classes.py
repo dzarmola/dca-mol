@@ -70,7 +70,7 @@ def getChainMap(objId, my_chains):
                 space = {"out": []}
                 okc = cmd.iterate("first %s and c. %s and polymer and n. CA" % (objId, chain), "out.append(resv)",
                                   space=space)
-                okr = cmd.iterate("first %s and c. %s and polymer and n. CA" % (objId, r), "out.append(resv)",
+                okr = cmd.iterate("first %s and c. %s and polymer and n. CA " % (objId, r), "out.append(resv)",
                                   space=space)
                 to_keep_idx_ref[(r, chain)] = sir - space['out'][1] + space['out'][0]
 
@@ -91,7 +91,7 @@ def make_a_snowman(starting_struct, further_structs, seqName):
     newName = [id+chain]
     print "Selection is", selection
 
-    cmd.iterate(selection + " and name ca and elem c", "resvs.append(resi)", space=space)
+    cmd.iterate(selection + " and name CA and elem C and (alt A or alt '')", "resvs.append(resi)", space=space)
     _lens.append(len(space['resvs']))
     if OTHER_NUMBERING:
         cnt = int(filter(lambda x: x.isdigit(), space["resvs"][-1]))
@@ -108,7 +108,7 @@ def make_a_snowman(starting_struct, further_structs, seqName):
         newName.append(xid+xch)
         sel = "({} and c. {} and polymer)".format(xid, xch)
         space = {"resvs": []}  # TODO renumber keeping numbering gaps?
-        cmd.iterate(sel + " and name ca and elem c", "resvs.append(resi)", space=space)
+        cmd.iterate(sel + " and name CA and elem C and (alt A or alt '')", "resvs.append(resi)", space=space)
         for res in space["resvs"]:
             if OTHER_NUMBERING:
                 cmd.alter(sel + "and i. %s" % res, 'resi="%s"' % res.replace(filter(lambda x: x.isdigit(), res), str(
@@ -778,7 +778,7 @@ class Structure:
                 #print "state", stan, "C1"
                 output_C1.write(str(stan+1))
                 lista = cmd.get_model(
-                    "(%s and %s) and polymer and elem C and name C1' " % (self.objId, self.chain),
+                    "(%s and %s) and polymer and elem C and name C1' and (alt A or alt '')" % (self.objId, self.chain),
                     state=stan).get_coord_list()
                 ll = len(lista)
                 for i in xrange(ll - 1, -1, -1):
@@ -791,7 +791,7 @@ class Structure:
                 #print "state", stan, "C4"
                 output_C4.write(str(stan+1))
                 lista = cmd.get_model(
-                    "(%s and %s) and polymer and elem C and name C4' " % (self.objId, self.chain),
+                    "(%s and %s) and polymer and elem C and name C4' and (alt A or alt '')" % (self.objId, self.chain),
                     state=stan).get_coord_list()
                 ll = len(lista)
                 for i in xrange(ll - 1, -1, -1):
@@ -804,7 +804,7 @@ class Structure:
                 #print "state", stan, "O5"
                 output_O5.write(str(stan+1))
                 lista = cmd.get_model(
-                    "(%s and %s) and polymer and elem O and name O5' " % (self.objId, self.chain),
+                    "(%s and %s) and polymer and elem O and name O5' and (alt A or alt '')" % (self.objId, self.chain),
                     state=stan).get_coord_list()
                 ll = len(lista)
                 for i in xrange(ll - 1, -1, -1):
@@ -818,7 +818,7 @@ class Structure:
                 #print "state", stan, "canonical"
                 output_canon.write(str(stan+1))
                 model = cmd.get_model(
-                    "(%s and %s) and polymer and (name C1' or ((name N1 and (resn G or resn A)) or (name N3 and (resn C or resn T or resn U)))) " % (self.objId, self.chain),
+                    "(%s and %s) and polymer and (name C1' or ((name N1 and (resn G or resn A)) or (name N3 and (resn C or resn T or resn U)))) and (alt A or alt '')" % (self.objId, self.chain),
                     state=stan)#.get_coord_list()
                 #lista = [(a.resn, a.coord) for a in lista.atom]
                 residues = {}
@@ -846,7 +846,7 @@ class Structure:
                 #print "state", stan, "heavy"
                 output_heavy.write(str(stan+1))
                 model = cmd.get_model(
-                    "(%s and %s) and polymer and (elem C or elem N or elem O or elem P) " % (
+                    "(%s and %s) and polymer and (elem C or elem N or elem O or elem P) and (alt A or alt '')" % (
                     self.objId, self.chain), state=stan)
                 residues = {}
                 for a in model.atom:
@@ -877,7 +877,7 @@ class Structure:
                 #print "state",stan,"CA"
                 output_CA.write(str(stan+1))
                 lista = cmd.get_model(
-                    "(%s and %s) and polymer and elem C and name CA " % (self.objId, self.chain), state=stan).get_coord_list()
+                    "(%s and %s) and polymer and elem C and name CA and (alt A or alt '')" % (self.objId, self.chain), state=stan).get_coord_list()
                 ll = len(lista)
                 for i in xrange(ll-1,-1,-1):
                     for j in xrange(i-1,-1,-1):
@@ -897,7 +897,7 @@ class Structure:
                         output_CB.write("\t%08.3f" % RMSD(lista[i],lista[j]))
                 print "Num of resids cb", ll"""
                 model = cmd.get_model(
-                    "(%s and %s) and polymer and elem C and (name CA or name CB) " % (self.objId, self.chain),
+                    "(%s and %s) and polymer and elem C and (name CA or name CB) and (alt A or alt '')" % (self.objId, self.chain),
                     state=stan)
                 residues = {}
                 for a in model.atom:
@@ -954,7 +954,7 @@ class Structure:
                 #                          space=space)
                 #########   CA
                 base_model = cmd.get_model(
-                    "(%s and c. %s) and polymer and (elem C or elem N or elem O or elem P) " % (
+                    "(%s and c. %s) and polymer and (elem C or elem N or elem O or elem P) and (alt A or alt '')" % (
                     self.objId, self.chain_simple), state=stan).atom
 
                 base_residues = {}
@@ -971,7 +971,7 @@ class Structure:
                 other_seqs = []
                 for ch in self.chains_to_keep:
                     model = cmd.get_model(
-                    "(%s and c. %s) and polymer and (elem C or elem N or elem O or elem P) " % (
+                    "(%s and c. %s) and polymer and (elem C or elem N or elem O or elem P) and (alt A or alt '')" % (
                     self.objId, ch), state=stan).atom
                     residues = {}
                     for a in model:
@@ -990,8 +990,12 @@ class Structure:
                             seq[i] = names[s].pop()
                         else:
                             seq[i] = False
-                assert len(alignment[0])  == max((len(x.seq) for x in [base_seq]+other_seqs)) ### TODO: temporarily, all relative to base_model
-
+                try:
+                    assert len(alignment[0])  == max((len(x.seq) for x in [base_seq]+other_seqs)) ### TODO: temporarily, all relative to base_model
+                except:
+                    print alignment[0],len(alignment[0])
+                    print [base_seq]+other_seqs
+                    raise IndexError
                 #### CA
                 output_C1.write(str(stan))
                 output_C4.write(str(stan))
@@ -1083,7 +1087,7 @@ class Structure:
                 #                          space=space)
                 #########   CA
                 base_model = cmd.get_model(
-                    "(%s and c. %s) and polymer and (elem C or elem N or elem O or elem S) " % (
+                    "(%s and c. %s) and polymer and (elem C or elem N or elem O or elem S) and (alt A or alt '')" % (
                     self.objId, self.chain_simple), state=stan).atom
 
                 base_residues = {}
@@ -1100,7 +1104,7 @@ class Structure:
                 other_seqs = []
                 for ch in self.chains_to_keep:
                     model = cmd.get_model(
-                    "(%s and c. %s) and polymer and (elem C or elem N or elem O or elem S) " % (
+                    "(%s and c. %s) and polymer and (elem C or elem N or elem O or elem S) and (alt A or alt '')" % (
                     self.objId, ch), state=stan).atom
                     residues = {}
                     for a in model:
@@ -1108,8 +1112,8 @@ class Structure:
                     other_models.append(list(zip(*sorted(residues.items(), key=lambda x: x[0][0]))[1]))
                     other_seqs.append(Sekwencja(len(other_seqs), seq1("".join([x[1] for x in sorted(residues)]))))
                 del residues
-
                 alignment,names = consensus([base_seq]+other_seqs)
+                #print alignment,names
                 base_idx = names.index("base")
                 names = [base_residues if x=="base" else other_models[x] for x in names]
                 alignment = [list(x)[::-1] for x in alignment]
@@ -1119,7 +1123,10 @@ class Structure:
                             seq[i] = names[s].pop()
                         else:
                             seq[i] = False
-                assert len(alignment[0])  == max((len(x.seq) for x in [base_seq]+other_seqs)) ### TODO: temporarily, all relative to base_model
+                try:
+                    assert len(alignment[0])  == max((len(x.seq) for x in [base_seq]+other_seqs)) ### TODO: temporarily, all relative to base_model
+                except:
+                    raise ValueError("There was a problem with the alignment")
 
                 #### CA
                 output_CA.write(str(stan))
@@ -1194,11 +1201,6 @@ class Structure:
         """
         if state != self.current_state:
             self.makeContactMap(state)
-        #print "restricted",self.residues,len(self.residues)
-        #print "notrestricted",self.sequence.replace(".", "-").replace("-", ""), len(self.sequence.replace(".", "-").replace("-", ""))
-        #print "restricted is", restricted
-        #print data,type(data),data.shape
-        #print "##"
         size = len(self.sequence.replace(".", "-").replace("-", "") if not restricted else self.residues)
         out = np.zeros((size, size))
         out.fill(-1.)
@@ -1619,10 +1621,10 @@ class DoubleStructure(Structure):
                 #print "state", stan, "C1"
                 output_C1.write(str(stan+1))
                 lista1 = cmd.get_model(
-                    "(%s and %s) and polymer and elem C and name C1' " % (self.struct_1.objId, self.struct_1.chain),
+                    "(%s and %s) and polymer and elem C and name C1' and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain),
                     state=stan).get_coord_list()
                 lista2 = cmd.get_model(
-                    "(%s and %s) and polymer and elem C and name C1' " % (self.struct_2.objId, self.struct_2.chain),
+                    "(%s and %s) and polymer and elem C and name C1' and (alt A or alt '')" % (self.struct_2.objId, self.struct_2.chain),
                     state=stan).get_coord_list()
                 ll1 = len(lista1)
                 ll2 = len(lista2)
@@ -1636,10 +1638,10 @@ class DoubleStructure(Structure):
                 #print "state", stan, "C4"
                 output_C4.write(str(stan+1))
                 lista1 = cmd.get_model(
-                    "(%s and %s) and polymer and elem C and name C4' " % (self.struct_1.objId, self.struct_1.chain),
+                    "(%s and %s) and polymer and elem C and name C4' and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain),
                     state=stan).get_coord_list()
                 lista2 = cmd.get_model(
-                    "(%s and %s) and polymer and elem C and name C4' " % (self.struct_2.objId, self.struct_2.chain),
+                    "(%s and %s) and polymer and elem C and name C4' and (alt A or alt '')" % (self.struct_2.objId, self.struct_2.chain),
                     state=stan).get_coord_list()
                 ll1 = len(lista1)
                 ll2 = len(lista2)
@@ -1653,11 +1655,11 @@ class DoubleStructure(Structure):
                 #print "state", stan, "O5"
                 output_O5.write(str(stan+1))
                 lista1 = cmd.get_model(
-                    "(%s and %s) and polymer and elem O and name O5' " % (self.struct_1.objId, self.struct_1.chain),
+                    "(%s and %s) and polymer and elem O and name O5' and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain),
                     state=stan).get_coord_list()
                 ll1 = len(lista1)
                 lista2 = cmd.get_model(
-                    "(%s and %s) and polymer and elem O and name O5' " % (self.struct_1.objId, self.struct_1.chain),
+                    "(%s and %s) and polymer and elem O and name O5' and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain),
                     state=stan).get_coord_list()
                 ll2 = len(lista2)
                 for i in xrange(ll1 - 1, -1, -1):
@@ -1671,7 +1673,7 @@ class DoubleStructure(Structure):
                 #print "state", stan, "canonical"
                 output_canon.write(str(stan+1))
                 model1 = cmd.get_model(
-                    "(%s and %s) and polymer and (name C1' or ((name N1 and (resn G or resn A)) or (name N3 and (resn C or resn T or resn U)))) " % (self.struct_1.objId, self.struct_1.chain),
+                    "(%s and %s) and polymer and (name C1' or ((name N1 and (resn G or resn A)) or (name N3 and (resn C or resn T or resn U)))) and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain),
                     state=stan)#.get_coord_list()
                 #lista = [(a.resn, a.coord) for a in lista.atom]
                 residues1 = {}
@@ -1681,7 +1683,7 @@ class DoubleStructure(Structure):
                 lista1 = sorted(residues1.keys(),key=lambda x: int(x))
                 ll1 = len(lista1)
                 model2 = cmd.get_model(
-                    "(%s and %s) and polymer and (name C1' or ((name N1 and (resn G or resn A)) or (name N3 and (resn C or resn T or resn U)))) " % (
+                    "(%s and %s) and polymer and (name C1' or ((name N1 and (resn G or resn A)) or (name N3 and (resn C or resn T or resn U)))) and (alt A or alt '')" % (
                     self.struct_2.objId, self.struct_2.chain),
                     state=stan)  # .get_coord_list()
                 # lista = [(a.resn, a.coord) for a in lista.atom]
@@ -1707,7 +1709,7 @@ class DoubleStructure(Structure):
                 #print "state", stan, "heavy"
                 output_heavy.write(str(stan+1))
                 model1 = cmd.get_model(
-                    "(%s and %s) and polymer and (elem C or elem N or elem O or elem P) " % (
+                    "(%s and %s) and polymer and (elem C or elem N or elem O or elem P) and (alt A or alt '')" % (
                         self.struct_1.objId, self.struct_1.chain), state=stan)
                 residues1 = {}
                 for a in model1.atom:
@@ -1716,7 +1718,7 @@ class DoubleStructure(Structure):
                 lista1 = sorted(residues1.keys(),key=lambda x: int(x))
                 ll1 = len(lista1)
                 model2 = cmd.get_model(
-                    "(%s and %s) and polymer and (elem C or elem N or elem O or elem P) " % (
+                    "(%s and %s) and polymer and (elem C or elem N or elem O or elem P) and (alt A or alt '')" % (
                         self.struct_2.objId, self.struct_2.chain), state=stan)
                 residues2 = {}
                 for a in model2.atom:
@@ -1745,10 +1747,10 @@ class DoubleStructure(Structure):
                 #print "state",stan,"CA"
                 output_CA.write(str(stan+1))
                 lista1 = cmd.get_model(
-                    "(%s and %s) and polymer and elem C and name CA " % (self.struct_1.objId, self.struct_1.chain), state=stan).get_coord_list()
+                    "(%s and %s) and polymer and elem C and name CA and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain), state=stan).get_coord_list()
                 ll1 = len(lista1)
                 lista2 = cmd.get_model(
-                    "(%s and %s) and polymer and elem C and name CA " % (self.struct_2.objId, self.struct_2.chain),
+                    "(%s and %s) and polymer and elem C and name CA and (alt A or alt '')" % (self.struct_2.objId, self.struct_2.chain),
                     state=stan).get_coord_list()
                 ll2 = len(lista2)
                 for i in xrange(ll1-1,-1,-1):
@@ -1762,7 +1764,7 @@ class DoubleStructure(Structure):
                 #print "state",stan,"CB"
                 output_CB.write(str(stan+1))
                 model1 = cmd.get_model(
-                    "(%s and %s) and polymer and elem C and (name CA or name CB) " % (self.struct_1.objId, self.struct_1.chain),
+                    "(%s and %s) and polymer and elem C and (name CA or name CB) and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain),
                     state=stan)
                 residues1 = {}
                 for a in model1.atom:
@@ -1771,7 +1773,7 @@ class DoubleStructure(Structure):
                 lista1 = sorted(residues1.keys(),key=lambda x: int(x))
                 ll1 = len(lista1)
                 model2 = cmd.get_model(
-                    "(%s and %s) and polymer and elem C and (name CA or name CB) " % (self.struct_2.objId, self.struct_2.chain),
+                    "(%s and %s) and polymer and elem C and (name CA or name CB) and (alt A or alt '')" % (self.struct_2.objId, self.struct_2.chain),
                     state=stan)
                 residues2 = {}
                 for a in model1.atom:
@@ -1790,7 +1792,7 @@ class DoubleStructure(Structure):
                 #print "state", stan, "heavt"
                 output_heavy.write(str(stan+1))
                 model1  = cmd.get_model(
-                    "(%s and %s) and polymer and (elem C or elem N or elem O or elem S) " % (self.struct_1.objId, self.struct_1.chain), state=stan)
+                    "(%s and %s) and polymer and (elem C or elem N or elem O or elem S) and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain), state=stan)
                 residues1 = {}
                 for a in model1.atom:
                     residues1[a.resi] = residues1.get(a.resi, []) + [a.coord]
@@ -1798,7 +1800,7 @@ class DoubleStructure(Structure):
                 ll1 = len(lista1)
 
                 model2  = cmd.get_model(
-                    "(%s and %s) and polymer and (elem C or elem N or elem O or elem S) " % (self.struct_2.objId, self.struct_2.chain), state=stan)
+                    "(%s and %s) and polymer and (elem C or elem N or elem O or elem S) and (alt A or alt '')" % (self.struct_2.objId, self.struct_2.chain), state=stan)
                 residues2 = {}
                 for a in model2.atom:
                     residues2[a.resi] = residues2.get(a.resi, []) + [a.coord]
