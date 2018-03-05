@@ -3293,10 +3293,6 @@ def __init__(self):
             #print "x,y",X,Y
             self.SELECTED_REGIONS.append((X, Y, final_pos[2]))
             s = []
-            if self.interface_mode.get() or final_pos[2]=="L" or any(len(x.chain_list)>1 for x in s):
-                self.draw_selected_patch((X, Y, final_pos[2]))
-
-            self.canvas.draw()
             if "Single" in self.map_structure_mode.get():
                 #            pass
                 s = [self.current_structure_obj_var]
@@ -3305,10 +3301,12 @@ def __init__(self):
                                   #x.active][:1]
             else:
                 s=self.STRUCTURES
+            if self.interface_mode.get() or final_pos[2]=="L" or any(len(x.chain_list)>1 for x in s):
+                self.draw_selected_patch((X, Y, final_pos[2]))
+
+            self.canvas.draw()
+
             self.bonds_in_patches(X, Y,  s, mode=(final_pos[2] == "R"))
-
-
-
             return
 
         def onclick_plot(self,event):
