@@ -3280,9 +3280,10 @@ def __init__(self):
                     except ValueError:
                         pass
                 self.AXLINES = []
+                sel_reg = bool(self.SELECTED_REGIONS)
                 self.SELECTED_REGIONS = []
                 self.canvas.draw()
-                if self.SELECTED_REGIONS and self.LAST_CLICKED_POS[0]==final_pos[0] and self.LAST_CLICKED_POS[1]==final_pos[1]:
+                if sel_reg and self.LAST_CLICKED_POS[0]==final_pos[0] and self.LAST_CLICKED_POS[1]==final_pos[1]:
                     return
             #print "pres,release",self.LAST_CLICKED_POS,final_pos
 
