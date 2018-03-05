@@ -818,6 +818,9 @@ def __init__(self):
             self.tool_frame.pack(side=Tk.LEFT)
             #### END PLOT FIELD
 
+            self.selection_is_happening = Tk.BooleanVar()
+            self.selection_is_happening.set(0)
+            self.selection_box = None
 
             """self.upper_controls = Tk.Frame(self.root)
             self.upper_controls.pack()
@@ -3312,6 +3315,7 @@ def __init__(self):
         def onclick_plot(self,event):
             if self.customToolbar._active is not None:
                 return
+            self.selection_is_happening.set(1)
             #print "x,y,xd,yd", event.x, event.y, event.xdata, event.ydata
             if event.xdata is not None and event.ydata is not None:
                 self.LAST_CLICKED_POS = [event.xdata, event.ydata, event.x, event.y]
@@ -3324,6 +3328,10 @@ def __init__(self):
                 return
             #print "x,y,xd,yd",event.x,event.y,event.xdata,event.ydata
             #print "lim",self.aplot.get_xlim(),self.aplot.get_ylim()
+            self.selection_is_happening.set(0)
+            if self.selection_box != None:
+                self.selection_box.remove()
+                self.selection_box = None
 
             self.size = len(self.data) + 1
             if self.LAST_CLICKED_POS is None:
@@ -3370,7 +3378,18 @@ def __init__(self):
             #print "Pointing at",actualX, actualY
             self.current_cursor_position_X.set("% 5d" % actualX if actualX is not None else "  NaN")
             self.current_cursor_position_Y.set("% 5d" % actualY if actualY is not None else "  NaN")
-
+            if self.selection_is_happening.get():
+                try:
+                    lcp = self.LAST_CLICKED_POS
+                    if self.selection_box != None:
+                        self.selection_box.remove()
+                        self.selection_box = None
+                    p = patches.Rectangle((lcp[0], lcp[1]), (xdat - lcp[0] + 1), (ydat   - lcp[1] + 1), ls='solid', color="gray", fill=0)
+                    self.aplot.add_patch(p)
+                    self.canvas.draw()
+                    self.selection_box = p
+                except:
+                    pass
         """def guess_if_protein(self,data):
             allowed = "actugACTUGnN.-"
             return any(set(allowed)!=set(x[0]+allowed) for x in data)"""
