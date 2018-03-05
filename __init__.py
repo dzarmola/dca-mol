@@ -2847,10 +2847,10 @@ def __init__(self):
             print 'obj is',obj
             obj,clist,cmap,idx_ref = obj if obj else (False,False,False)
             print "Mark on similar is",others,'obj is',obj
-            for c in clist:
-                print "doing now chain",c
+            for c in clist[0]: ######## TODO Important - changed to differentiate the "mark on similar option"
+                #print "doing now chain",c
                 for tmpi,chain in enumerate([c]+(cmap.get(c,[]) if others else [])):
-                    print "tmpi,chain",tmpi,chain
+                    #print "tmpi,chain",tmpi,chain
                     r1,r2 = res1,res2
                     if others and tmpi:
                         r1 += idx_ref[(c,chain)]
