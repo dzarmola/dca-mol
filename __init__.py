@@ -1179,7 +1179,9 @@ def __init__(self):
             return cmap,norm
 
         def _quit(self,asked=False,parent=False):
+            print "Quitting..."
             if parent:
+                print "Will also close parent window"
                 self.parent.destroy()
                 self.parent.quit()
                 return
@@ -1189,13 +1191,23 @@ def __init__(self):
                 return
             self._delete_temp_files()
             self.clear_pymol_bonds()
-            self.root.quit()  # stops mainloop
-            self.root.destroy()  # this is necessary on Windows to prevent
-            # Fatal Python Error: PyEval_RestoreThread: NULL tstate
+            try:
+                print "Will destroy root"
+                self.root.destroy()  # this is necessary on Windows to prevent
+                # Fatal Python Error: PyEval_RestoreThread: NULL tstate
+            except:
+                print "Couldn't destroy root"
+            try:
+                print "Will quit root"
+                #self.root.quit()  # stops mainloop
+            except:
+                print "Couldn't quit mainloop"
 
 
         def _reset(self):
             self._quit(asked=True)
+            print "Finished quitting"
+            print "Self.app",self.app
             dcaMOL(self.app,self.discores.get(),self.alignment.get())
 
 
@@ -1958,6 +1970,7 @@ def __init__(self):
             def get_res(s):
                 i = s.split("i. ")[1].split()[0]
                 c = s.split("c. ")[1].split()[0]
+                return (i + c.strip())
             text = "Currently selected residue pairs:\n"
             for x in self.DRAWN_BONDS:
                 if x[0][:5] == "dist_":
@@ -3039,6 +3052,7 @@ def __init__(self):
                     for seq, dane in importantSeqs.items():
                         self.STRUCTURES.append(dm.Structure(dane[1], dane[2], seq, dane[0], dane[3], dane[4], dane[5], splits=dane[-1]))
                 except dm.ResetError:
+                    print "Will reset"
                     self._reset()
                 except dm.RetryError:
                     dm.Structure.already_swapped = 1
