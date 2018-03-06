@@ -26,8 +26,6 @@ def __init__(self):
 
     # TODO check which paths should actually be used
 
-    #print hf.find_module("matplotlib")
-    #print hf.find_module("matplotlib","backend_bases.py")
 
     ############## VARIOUS IMPRTS
     potential_paths = [""]
@@ -148,28 +146,22 @@ def __init__(self):
                     self.limits = None
                     self.toolitems = (
                         ('Home', 'Reset original view', 'home', 'cofnij'),
-                        #('Back', 'Back to  previous view', 'back', 'back'),
-                        #('Forward', 'Forward to next view', 'forward', 'forward'),
                         (None, None, None, None),
                         ('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan'),
                         ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
                         (None, None, None, None),
-                        #('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
                         ('Save', 'Save the figure', 'filesave', 'save_figure'),
                         )
                     NavigationToolbar2TkAgg.__init__(self, canvas_, parent_)
 
                 def cofnij(self,*args):
                     if self.limits is not None:
-                        #print vars(self.canvas.figure.axes[0])
                         self.canvas.figure.axes[0].set_xlim(self.limits[0])
                         self.canvas.figure.axes[0].set_ylim(self.limits[1])
-                        #self.canvas.figure.ylim(self.limits[1])
                         self.canvas.draw()
 
 
                 def save_figure(self, *args):
-    #                from six.moves import tkinter_tkfiledialog, tkinter_messagebox
                     ftypes = [('Portable Network Graphics', '*.png'), \
                               ('Scalable Vector Graphics', '*.svgz'), \
                               ('Tagged Image File Format', '*.tiff'), ('Joint Photographic Experts Group', '*.jpg'), \
@@ -318,7 +310,6 @@ def __init__(self):
             self.window_of_selected_bonds_scroll.config(command=self.window_of_selected_bonds_text.yview)
             self.window_of_selected_bonds_text.config(yscrollcommand=self.window_of_selected_bonds_scroll.set)
             self.window_of_selected_bonds_text.insert('1.0', "PLACEHOLDER")
-            #self.window_of_selected_bonds_text.bind('<Control-c>', lambda *args: self.window_of_selected_bonds_text.selection_get())
             self.window_of_selected_bonds.bind('<Control-c>', lambda *args: (self.root.clipboard_clear(),self.root.clipboard_append(self.window_of_selected_bonds_text.selection_get())))
             self.window_of_selected_bonds_text.config(state="disabled")
             self.window_of_selected_bonds_text.grid(row=0,column=0)
@@ -326,14 +317,8 @@ def __init__(self):
             self.window_of_selected_bonds_rmbmenu = dm.RMB_menu(self.root,self.window_of_selected_bonds,self.window_of_selected_bonds_text)
             self.window_of_selected_bonds_text.bind('<Button-3>', self.window_of_selected_bonds_rmbmenu.popup)
 
-            #self.window_of_selected_bonds_text = Tk.StringVar()#Tk.Text(self.window_of_selected_bonds, width=30, state=Tk.DISABLED)
-            #self.window_of_selected_bonds_text.set("PLACEHOLDER")
-            #Tk.Label(self.window_of_selected_bonds, textvariable=self.window_of_selected_bonds_text).grid(row=0,column=0)
-
-
             self.alignment = Tk.StringVar()
             self.discores = Tk.StringVar()
-            #self.discores.set("/tmp/common_pfam_short_inserts.di") ### TODO TEMPORARY
             if ALN: self.alignment.set(ALN)
             if DI: self.discores.set(DI)
             self.overall_mode = 0
@@ -377,11 +362,6 @@ def __init__(self):
 
             #### CREATE MAIN WINDOW
 
-    #        self.root = Tk.Tk()
-            #self.root.wm_title("Here the magic happens")
-            #self.root.withdraw()
-            #self.root.wm_iconify()
-            #self.root.wm_withdraw()
 
             ###MENUBAR
             self.menubar = Tk.Menu(self.root)
@@ -391,10 +371,7 @@ def __init__(self):
             self.interface_mode.set(0)
 
             self.fileMenu = Tk.Menu(self.menubar)
-            #self.fileMenu.add_command(label='Save plot image', command=lambda: self._save(), underline=14)
             self.fileMenu.add_command(label='Save plot image', command=lambda: self.customToolbar.save_figure(), underline=14)
-            #self.fileMenu.add_command(label='Save plot as .svg', command=lambda: self._save(1), underline=14)
-            #self.fileMenu.add_command(label='Save plot as .eps', command=lambda: self._save(2), underline=14)
             self.fileMenu.add_separator()
             self.fileMenu.add_command(label='Save native contacts to a file', command=self.write_native_contacts, underline=10,state=Tk.DISABLED)
             self.fileMenu.add_command(label='Save all distances for the current contact map to a file', command=self.write_all_contacts, underline=10,state=Tk.DISABLED)
@@ -436,8 +413,6 @@ def __init__(self):
             self.SSMenu = Tk.Menu(self.menubar)
             self.SSMenu.add_checkbutton(label="Show list of selected bonds", variable=self.show_bond_selection)
             self.SSMenu.add_separator()
-            #self.SSMenu.add_checkbutton(label="Consider interchain contacts only with the main chain",
-            #                               variable=self.all_combos_var)
             self.SSMenu.add_checkbutton(label="Native contacts comparison mode",
                                                   variable=self.comp_mode,
                                                   command=lambda: self.comparison_mode_engaged())
@@ -501,13 +476,8 @@ def __init__(self):
 
             ### END MENUBAR
 
-    #        def mysza(dol=0,args=[]):
-    #            print "Mysza dol?",dol,vars(args[0])
-
             self.root.bind("<KeyPress>", self.keydown_all)
             self.root.bind("<KeyRelease>", self.keyup_all)
-    #        self.root.bind("<ButtonPress-1>", lambda *args: mysza(0,args))
-    #        self.root.bind("<ButtonRelease-1>", lambda *args: mysza(1,args))
             self.root.bind("<ButtonPress-1>", lambda *args: self.HELD_LMB.set(1))
             self.root.bind("<ButtonRelease-1>", lambda *args: (self.HELD_LMB.set(0), \
                                 [self.recalcTPrate(),self.redraw_bonds()] if  "Single" in self.map_structure_mode.get() and \
@@ -527,8 +497,6 @@ def __init__(self):
                                                tags="self.upper_bar")
             self.upper_bar.bind("<Configure>", self.onUpperBarConfigure)
 
-            #self.upper_bar = Tk.Frame(self.content,borderwidth=1, relief="sunken")
-
             self.left_bar_overall = Tk.Frame(self.content, borderwidth=0)
             self.left_bar_canvas = Tk.Canvas(self.left_bar_overall, borderwidth=0)
             self.left_bar = Tk.Frame(self.left_bar_canvas, borderwidth=1, relief="sunken")
@@ -539,7 +507,6 @@ def __init__(self):
             self.left_bar_canvas.create_window((0,0), window=self.left_bar, anchor="nw",
                                       tags="self.left_bar")
             self.left_bar.bind("<Configure>", self.onLeftBarConfigure)
-            #self.left_bar_canvas.bind("<Configure>", self.onLeftBarCanvasConfigure)
 
             self.plot_field = Tk.Frame(self.content)
             self.mode_frame = Tk.Frame(self.content)
@@ -579,7 +546,6 @@ def __init__(self):
 
             self.TP_frame = Tk.Frame(self.stats_frame)
             Tk.Label(self.TP_frame, text="True Positive Rate").grid(column=0, row=0)
-            #Tk.Label(self.cursor_position_frame, text="True Positive Count").grid(column=0, row=0)
             Tk.Label(self.TP_frame, textvariable=self.TPrate).grid(column=0, row=1)
             self.TP_frame.grid(column=1, row=0,padx=10)
 
@@ -701,7 +667,6 @@ def __init__(self):
             Tk.Label(cm_frame, width=8, textvariable=self.spin_min_var_4cmap).grid(column=0, row=3,sticky='W')
             gradient_frame_inner = Tk.Frame(gradient_frame)
             gradient_frame_inner.grid(column=0, row=0)
-            #self.cmap_ax.matshow(gradient, aspect=20, cmap=self.cmapa)
             mpl.colorbar.ColorbarBase(self.cmap_ax, cmap=self.cmapa,
                                       norm=self.norm,
                                       orientation='vertical')
@@ -711,13 +676,9 @@ def __init__(self):
             self.cmap_canvas.show()
             self.cmap_canvas.get_tk_widget().pack(side=Tk.LEFT, fill=Tk.BOTH, expand=1)
             self.cmap_canvas._tkcanvas.pack(side=Tk.LEFT, fill=Tk.BOTH, expand=1)
-            # self.cmap_fig.tight_layout()
 
-
-            #plt.figure(self.FIGURE.number)
             #### END OF COLORMAP
             ### SPIN MIN
-
 
             sl_min = Tk.Frame(self.left_bar)  # min_slider
             sl_min.grid(column=0, row=4)
@@ -776,23 +737,18 @@ def __init__(self):
             self.keep_selected_regions = Tk.Button(master=self.left_bar, text='Keep selection between plots', \
                                                command=self.keep_all_regions)
             self.plot_to_remember = None
+
             ###END BONDS
-
-
             ### LEGEND
             self.legend = Tk.Frame(self.left_bar)  # legend for secondary structure
-
 
             Tk.Label(self.legend, text="Secondary structure plot:").grid(column=0,row=0,sticky="W",columnspan=2)
             Tk.Label(self.legend, text="Alpha helix").grid(column=0,row=1)
             Tk.Label(self.legend, foreground="red",text=ur'\u03B1').grid(column=1,row=1)
-            #Tk.Label(self.legend, foreground="red",text=ur'\u221D \ \u056E').grid(column=1,row=1)
             Tk.Label(self.legend, text="Beta sheet").grid(column=0,row=2)
             Tk.Label(self.legend, foreground="blue",text=ur'\u03B2').grid(column=1,row=2)
-            #Tk.Label(self.legend, foreground="blue",text=ur'\u21D1 \ \u21D2').grid(column=1,row=2)
             Tk.Label(self.legend, text="Missing residue").grid(column=0,row=3)
             Tk.Label(self.legend, foreground="gray",text="X").grid(column=1,row=3)
-
 
             ################################ END LEFT BAR
 
@@ -822,77 +778,25 @@ def __init__(self):
             self.selection_is_happening.set(0)
             self.selection_box = None
 
-            """self.upper_controls = Tk.Frame(self.root)
-            self.upper_controls.pack()
-            self.below = Tk.Frame(self.root)
-            self.below.pack(fill=Tk.BOTH, expand=1)
-            self.left_controls = Tk.Frame(self.below)
-            self.left_controls.pack(side=Tk.LEFT)
-    
-            lframe = Tk.Frame(self.cursor_position_frame)
-            lframe.pack(side=Tk.LEFT)
-            rframe = Tk.Frame(self.cursor_position_frame)
-            rframe.pack(side=Tk.LEFT)
-    
-    
-            self.lower_controls = Tk.Frame(self.root)
-            self.lower_controls.pack(side=Tk.BOTTOM)"""
-
-            #self.quit_button = Tk.Button(master=self.lower_controls, text='Quit', command=self._quit)
-            #self.reset_button = Tk.Button(master=self.lower_controls, text='Reset', command=self._reset)
-            #self.save_png_button = Tk.Button(master=self.lower_controls, text='Save plot as .png', command= lambda: self._save(0))
-            #self.save_svg_button = Tk.Button(master=self.lower_controls, text='Save plot as .svg', command=lambda: self._save(1))
-
-            #self.write_native_contacts_button = Tk.Button(master=self.lower_controls, text='Placeholder native contacts', command=self.write_native_contacts)
-            #self.write_all_contacts_button = Tk.Button(master=self.lower_controls, text='Placeholder all contacts',
-            #                                              command=self.write_all_contacts)
-
-
-            #### VARIABLES
-
-
-            #self.mark_on_similar_just_within_spin = None
-
-            #self.restrict_check = None
-            #self.comp_mode_check = None
-            #self.recolor_by_trueness_check = None
-
-
-
             self.root.protocol("WM_DELETE_WINDOW", lambda: self._on_closing(parent=False))
-            #self.parent.protocol("WM_DELETE_WINDOW", lambda: self._on_closing(parent=True))
-            #print "Will start first window"
             self.dcaMOL_main()
 
         def onLeftBarConfigure(self, event):
             '''Reset the scroll region to encompass the inner frame'''
-            #print "Firing in frame", event.width, event.height
             self.left_bar_canvas.configure(height=event.height,width=event.width)
             self.left_bar_canvas.configure(scrollregion=self.left_bar_canvas.bbox("all"))
         def onUpperBarConfigure(self, event):
             '''Reset the scroll region to encompass the inner frame'''
-            #print "Firing in frame", event.width, event.height
             self.upper_bar_canvas.configure(height=event.height,width=event.width)
             self.upper_bar_canvas.configure(scrollregion=self.upper_bar_canvas.bbox("all"))
 
 
-        """def onLeftBarCanvasConfigure(self, event):
-            # width is tweaked to account for window borders
-    
-            width = event.width - 4
-            height = event.height - 4
-            print "Firing in canvas",width,height
-            #self.left_bar_canvas.itemconfigure("self.left_bar", width=width)"""
     ###### TRAJECTROY MODE
         def writeout_popup(self,container):
             popup = Tk.Toplevel(self.root)
 
             upper = Tk.Frame(master=popup)
             upper.grid(row=0,column=0,columnspan=2)
-    #        labels = Tk.Frame(master=upper)
-    #        labels.grid(row=0,column=0)
-    #        entries = Tk.Frame(master=upper)
-    #        entries.pack(side=Tk.LEFT)
 
             Tk.Label(master=popup, text="From frame").grid(row=1,column=0)
             Tk.Label(master=popup, text="To frame").grid(row=2,column=0)
@@ -1136,7 +1040,6 @@ def __init__(self):
         def _delete_temp_files(self):
             tmps = glob.glob("{}/_temp_*_C*.map".format(self.path)) + glob.glob("{}/_temp_*_O5.map".format(self.path)) +glob.glob("{}/_temp_*_heavy.map".format(self.path))
             for tmp in tmps:
-                #print "removing", tmp
                 os.remove(tmp)
             print "Cleaned up temporary files."
 
@@ -1169,9 +1072,6 @@ def __init__(self):
                 if "FP_COLOR" in options:
                     self.default_fp_color = options["FP_COLOR"]
                 self.TP_cmap, self.TP_norm = self._make_new_TP_cmap()
-                #self.SSMenu.entryconfig(8, label="Toggle True Positives(intrachain) - "+self.default_tpa_color)
-                #self.SSMenu.entryconfig(9, label="Toggle True Positives(interchain) - "+self.default_tpe_color)
-                #self.SSMenu.entryconfig(10, label="Toggle False Positives - "+self.default_fp_color)
 
 
         def _configure_window(self):
@@ -1213,7 +1113,6 @@ def __init__(self):
             Tk.Label(TPcolor_frame, text="Intrachain True Positives").grid(column=0, row=0)
             tpa = Tk.StringVar()
             tpa.set(self.default_tpa_color)
-            #Tk.Entry(TPcolor_frame, width=8, textvariable=tpa).grid(column=1, row=0)
             combo1 = AutocompleteCombobox(TPcolor_frame, textvar=tpa, width=8)
             combo1.set_shortlist(['blue', 'green', 'red', 'cyan', 'magenta', 'yellow'])
             combo1.set_completion_list(colors)
@@ -1221,7 +1120,6 @@ def __init__(self):
             Tk.Label(TPcolor_frame, text="Interchain True Positives").grid(column=0, row=1)
             tpe = Tk.StringVar()
             tpe.set(self.default_tpe_color)
-            #Tk.Entry(TPcolor_frame, width=8, textvariable=tpe).grid(column=1, row=1)
             combo2 = AutocompleteCombobox(TPcolor_frame, textvar=tpe, width=8)
             combo2.set_shortlist(['blue', 'green', 'red', 'cyan', 'magenta', 'yellow'])
             combo2.set_completion_list(colors)
@@ -1229,7 +1127,6 @@ def __init__(self):
             Tk.Label(TPcolor_frame, text="False Positives").grid(column=0, row=2)
             fp = Tk.StringVar()
             fp.set(self.default_fp_color)
-            #Tk.Entry(TPcolor_frame, width=8, textvariable=fp).grid(column=1, row=2)
             combo3 = AutocompleteCombobox(TPcolor_frame, textvar=fp, width=8)
             combo3.set_shortlist(['blue', 'green', 'red', 'cyan', 'magenta', 'yellow'])
             combo3.set_completion_list(colors)
@@ -1308,7 +1205,6 @@ def __init__(self):
                 self._quit(True,parent)
 
         def _save(self):
-            #exts = {0:".png",1:".svg",2:".eps"}
             ftypes = [('Portable Network Graphics', '*.png'),\
                       ('Scalable Vector Graphics', '*.svgz'), \
                       ('Tagged Image File Format', '*.tiff'), ('Joint Photographic Experts Group', '*.jpg'), \
@@ -1320,19 +1216,7 @@ def __init__(self):
                 ftypes.append(('PGF code for LaTeX', '*.pgf'))
             plik = tkFileDialog.asksaveasfilename(filetypes=ftypes)
             print "Saving {} ... ".format(plik),
-            """if vector>0:
-                if "Single" in self.map_structure_mode.get():
-                    self.makeSSplot(mesh=True)
-                else:
-                    heatmap = self.aplot.pcolormesh(self.data, cmap=self.cmapa,vmin=self.slider_min.get(),vmax=self.slider_max.get())
-                    self.canvas.draw()"""
-
             self.FIGURE.savefig(plik,format=plik.split(".")[-1],dpi=self.default_dpi)
-            """if "Single" in self.map_structure_mode.get():
-                self.makeSSplot()
-            else:
-                heatmap = self.aplot.pcolorfast(self.data, cmap=self.cmapa,vmin=self.slider_min.get(),vmax=self.slider_max.get())
-                self.canvas.draw()"""
             print "Done"
 
 
@@ -1341,8 +1225,6 @@ def __init__(self):
             self.wait_window.deiconify()
             self.wait_window.update_idletasks()
             self.wait_window.update()
-            #win = Tk.Toplevel(self.root)
-            #self.wait_window.transient()
 
         def _wait_in_progress(self, progress):
             self.wait_window_progress.set(progress)
@@ -1355,10 +1237,9 @@ def __init__(self):
             if event.keysym=="Control_L" or event.keysym=="Control_R":
                 self.HELD_CTRL.set(True)
             self.LAST_HIT_KEY.set(event.keysym in ["Return", "KP_Enter", "Extended-Return"])
-            print event.keysym
             if event.keysym in self.kseq and self.kseq[self.kseq_p+1] == event.keysym:
                 self.kseq_p+=1
-                print "Good!",self.kseq_p
+                print "Good! {}/{}".format(self.kseq_p,len(self.kseq))
             else:
                 self.kseq_p = -1
             if self.kseq_p == len(self.kseq)-1:
@@ -1373,7 +1254,6 @@ def __init__(self):
         def keyup_all(self,event):
             if event.keysym=="Control_L" or event.keysym=="Control_R":
                 self.HELD_CTRL.set(False)
-            #self.LAST_HIT_KEY.set(event.keysym in ["Return", "KP_Enter", "Extended-Return"])
 
         def dcaMOL_main(self):
             root = self.loader_window
@@ -1435,7 +1315,6 @@ def __init__(self):
             but_ld = Tk.Button(root, textvariable= but_ld_label, command=load_discores)
             but_ld.grid(row=2,column=0,columnspan=2)
 
-            #starter0 = Tk.Button(root, text="Start analyzing!", command=self.start_plot)
             starter0 = Tk.Button(root, text="Start analysis\n(single state)", command=lambda: self.start_plot(0))
             starter0.config(state="disabled")
             starter0.grid(row=3,column=0)
@@ -1449,8 +1328,6 @@ def __init__(self):
                 but_ld_label.set("Load DI scores from {}".format(shorten(self.discores)))
                 starter0.config(state="normal")
                 starter1.config(state="normal")
-            #print "made first window"
-            #self.loader_window.mainloop()
 
 
         def ask_for_structures(self,headers, selected):
@@ -1486,10 +1363,6 @@ def __init__(self):
             sel_button_rna = Tk.Button(master=self.sequence_selection_window, text='Proceed\n(RNA/DNA)', command=lambda : get_selected(1))
             sel_button_protein.grid(row=2,column=0)
             sel_button_rna.grid(row=2, column=1)
-            #Tk.Button(self.sequence_selection_window, text="Go back", command=self._reset).grid(row=3,column=0,sticky="w")
-#            self.root.update()
-#            self.parent.update_idletasks()
-#            self.parent.update()
             self.sequence_selection_window.update_idletasks()
             self.sequence_selection_window.mainloop()
 
@@ -1504,8 +1377,6 @@ def __init__(self):
         def on_entry_click(self,event):
             entry = event.widget
             """function that gets called whenever entry is clicked"""
-            #print entry
-            #print vars(entry)
             if entry.get() == 'PDB ID':
                entry.delete(0, "end") # delete all the text in the entry
                entry.insert(0, '') #Insert blank for user input
@@ -1520,7 +1391,6 @@ def __init__(self):
             self.structure_selection_window = Tk.Toplevel(self.root)
             self.structure_selection_window.wm_title("Specify PDB ids of those sequences/select a file")
             ## header # [pdb] Chain [] [load file] [select loaded] [] Keep similar [] DNA/RNA [Add more]
-
             currently_present = cmd.get_object_list('(all)')
 
             frames = []
@@ -1545,21 +1415,16 @@ def __init__(self):
                 filenames_vars[index].pop()
                 if loaded_vars[index]:
                     loaded_vars[index].pop()
-                #similar_vars[index].pop()
                 cnt_vars[index] -= 1
                 if row > 1:
-    #                print "Moving button from",row,"to",row-1
                     del_butts[index].grid(row=row - 1, column=7,sticky="E")
                 else:
-    #                print "reMoving button from", row
                     del_butts[index].grid_forget()
                     del_butts[index].destroy()
                     del_butts[index] = None
 
                 rf = frames[index].pop()
-    #            print rf
                 for item in rf:
-    #                print item
                     item.grid_forget()
                     item.destroy()
 
@@ -1569,7 +1434,6 @@ def __init__(self):
                 row = cnt_vars[index]+1
                 cnt_vars[index]+=1
                 rf = []#Tk.Frame(frame)
-    #            print "Adding row",frame,seqid,index,row
                 f = frame
                 if row == 0:
                     header = Tk.Entry(f, relief=Tk.FLAT)
@@ -1582,8 +1446,6 @@ def __init__(self):
                 chains_vars[index] = chains_vars.get(index, [])
                 filenames_vars[index] = filenames_vars.get(index, [])
                 loaded_vars[index] = loaded_vars.get(index, [])
-                #similar_vars[index] = similar_vars.get(index, [])
-
                 entries_vars[index] += [Tk.StringVar()]
                 e = Tk.Entry(f, width=6, textvariable=entries_vars[index][row])
                 e.insert(0, 'PDB ID')
@@ -1624,8 +1486,6 @@ def __init__(self):
                         rf.append(ic)
                 else:
                     similar_vars[index].set(0)
-                # if self.overall_mode == 1:
-                #    keep_gay_utopia[-1]['state'] = Tk.DISABLED
                 if row == 0:
                     if self.overall_mode == 1:
                         a = Tk.Button(f, text="Add more states",
@@ -1642,18 +1502,16 @@ def __init__(self):
                     del_butts[index] = a
                 else:
                     del_butts[index].grid(row=row, column=8,sticky="E")
-                #row_frame.grid(row=row,column=0)
                 frames[index].append(rf)
 
             def read_one_row(i, row_num,name = ''):
                 taken_ids = cmd.get_object_list('(all)')
-                #print taken_ids
                 keep_others = similar_vars[i].get()
                 appendix = ""
                 chain = chains_vars[i][row_num].get()
                 mapping_id = None
                 if loaded_vars[i] and loaded_vars[i][row_num].get() != "Select already loaded":
-                    print "Loading from aleardy in", i
+                    print "Loading from already loaded", i
                     lv = loaded_vars[i][row_num].get()
 
                     if not name:
@@ -1667,20 +1525,15 @@ def __init__(self):
                 elif filenames_vars[i][row_num][0].get() not in ["Load local file", ""]:
                     print "Loading from file", i
                     if not name:
-                        nid = safe_oname_re.sub("",ntpath.splitext(ntpath.basename(filenames_vars[i][row_num][0].get()))[0])+"_"+chain
+                        nid = safe_oname_re.sub("",ntpath.splitext(ntpath.basename(filenames_vars[i][row_num][0].get()))[0])+("_"+chain if chain else "")
                         while nid + appendix in taken_ids:
                             appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
                         name = nid+appendix
                         mapping_id = [name, chain, keep_others, False, iface_vars[i]]
                     cmd.load(filenames_vars[i][row_num][0].get(), name)  # TODO: obj name as seq
-                    #tmp = cmd.get_object_list('(all)')[-1]
-
-                    # mapping[id]=[".".join(filenames_vars[i].get().split("/")[-1].split(".")[:-1]),chains_vars[i].get()]
-                    # added = cmd.get_object_list('(all)')[-1]
-                    # cmd.split_chains(added)
                 elif entries_vars[i][row_num].get() not in ["PDB ID",""]:
                     if not name:
-                        nid = safe_oname_re.sub("", entries_vars[i][row_num].get()) + "_" + chain
+                        nid = safe_oname_re.sub("", entries_vars[i][row_num].get()) +("_"+chain if chain else "")
                         while nid + appendix in taken_ids:
                             appendix = "_1" if not appendix else ("_%d" % (int(appendix.strip("_")) + 1))
                         print "Fetching for", i
@@ -1690,7 +1543,6 @@ def __init__(self):
                 else:
                     print "No selection for ", i, row_num
                     mapping_id = None
-                #print "mapping is",mapping_id
                 return mapping_id
 
             def get_selected(*args):
@@ -1722,7 +1574,6 @@ def __init__(self):
                         else:
                             return
                     mapping[id] = mapping_id
-    #            print mapping
                 result_code.set(1)
                 self.structure_selection_window.quit()
                 self.structure_selection_window.destroy()
@@ -1731,12 +1582,9 @@ def __init__(self):
                 f = Tk.Frame(master=self.structure_selection_window)
                 frames.append([])
                 cnt_vars.append(-1)
-                # jako pierwszy prosta pozioma kreska?
-    #            print index,id
                 add_row(f, id, index)
                 f.grid(row=index,column=0)
 
-            # entries[0].focus()
             sel_button = Tk.Button(master=self.structure_selection_window, text='Done', command=get_selected)
             sel_button.grid(column=0, row=len(selected))
             Tk.Button(self.structure_selection_window, text="Go back", command= \
@@ -1857,17 +1705,13 @@ def __init__(self):
                     heatmap = self.aplot.pcolorfast(self.data, cmap=cmapa, vmin=self.slider_min.get(), vmax=self.slider_max.get())
                 self.cmapa = cmapa
                 self.norm = norm
-                #self.recolor_by_trueness_var.set(False)
-                #print "Slider recalc", self.HELD_LMB.get()
                 if not self.HELD_LMB.get():
-                #    print "Recalcing"
                     self.recalcTPrate()
                 self.canvas.draw()
                 self.customToolbar.update()
             mpl.colorbar.ColorbarBase(self.cmap_ax, cmap=self.cmapa,
                                       norm=self.norm,
                                       orientation='vertical')
-            #self.
             self.LAST_HIT_KEY.set(0)
             self.spin_min_var.set(self.slider_min.get())
 
@@ -1876,7 +1720,6 @@ def __init__(self):
                 self.redraw_bonds()
 
         def spin_min_change(self,*args):
-            # print self.LAST_HIT_KEY.get()
             if not self.LAST_HIT_KEY.get():
                 return
             if not self.recolor_by_trueness_var.get() and not self.recolor_by_any_trueness.get() and not self.overlay_var.get():
@@ -1907,7 +1750,6 @@ def __init__(self):
                     heatmap = self.aplot.pcolorfast(self.data, cmap=cmapa, vmin=self.slider_min.get(), vmax=self.slider_max.get())
                 self.cmapa = cmapa
                 self.norm = norm
-                #self.recolor_by_trueness_var.set(False)
                 self.canvas.draw()
             mpl.colorbar.ColorbarBase(self.cmap_ax, cmap=self.cmapa,
                                       norm=self.norm,
@@ -1934,7 +1776,6 @@ def __init__(self):
                     heatmap = self.aplot.pcolorfast(self.data, cmap=cmapa, vmin=self.slider_min.get(), vmax=self.slider_max.get())
                 self.cmapa = cmapa
                 self.norm = norm
-                #self.recolor_by_trueness_var.set(False)
                 self.canvas.draw()
             mpl.colorbar.ColorbarBase(self.cmap_ax, cmap=self.cmapa,
                                       norm=self.norm,
@@ -1961,12 +1802,9 @@ def __init__(self):
                 cmapa.set_under(color="white")
                 heatmap = self.aplot.pcolorfast(self.data, cmap=cmapa, norm=norm, vmin=self.slider_min.get(), vmax=self.slider_max.get())
                 self.sl_mid.grid(column=0, row=3)
-    #            self.slider_mid.pack(side=Tk.LEFT)
                 self.slider_mid.set((self.slider_max.get() - self.slider_min.get()) / 2)
             else:
-                #            if slider_mid: slider_mid[0].destroy()
                 norm = None
-    #            self.slider_mid.pack_forget()
                 self.sl_mid.grid_forget()
                 cmapa = cm.get_cmap(self.colormap.get())
                 cmapa.set_bad(color="0.75")
@@ -2026,8 +1864,6 @@ def __init__(self):
             self.makeSSplot()
         def spin_comp_distance_click(self,*args):
             self.LAST_HIT_KEY.set(1)
-    #        self.makeSSplot()
-
 
         def spin_comp_distance_key(self,event):
             self.LAST_HIT_KEY.set(event.keysym in ["Return", "KP_Enter", "Extended-Return"])
@@ -2086,19 +1922,16 @@ def __init__(self):
                 self.window_of_selected_bonds.deiconify()
             else:
                 self.window_of_selected_bonds.withdraw()
-        def update_list_of_bonds(self):  ###TODO z okazji interfaceu
-            #self.window_of_selected_bonds_text.set("")
 
+        def update_list_of_bonds(self):  ###TODO z okazji interfaceu
             self.window_of_selected_bonds_text.config(state=Tk.NORMAL)
             self.window_of_selected_bonds_text.delete('1.0',Tk.END)
-            # print "Updating"
             def get_dist(a1,a2):
                 if "c." in a1:
                     try:
                         return "%5.3f" % cmd.get_distance(a1,a2)
                     except pymol.CmdException:
-                        print "problem z updatem",a1,a2
-                        return ""
+                        return "Error"
                 else:
                     atom = "and name CA and elem C" if not dm.Structure.isRNA else "and name P and elem P"
                     if self.interface_mode.get():
@@ -2111,55 +1944,29 @@ def __init__(self):
                                                                  a2.strip(
                                                                      self.current_structure_obj_var.struct_2.chain_simple),
                                                                  atom)
-                        #print at1,at2,cmd.get_distance(at1,at2)
                     else:
-                        #print "Nope",a1,a2
                         at1 = "{} and c. {} and i. {} {} and (alt A or alt '')".format(self.current_structure_obj_var.objId, a1[-1], a1[:-1],
                                                                  atom)
                         at2 = "{} and c. {} and i. {} {} and (alt A or alt '')".format(self.current_structure_obj_var.objId, a2[-1], a2[:-1],
                                                                  atom)
-                        #raise IndexError("Nope")
                     try:
                         return "%5.3f" % cmd.get_distance(at1,at2)
                     except pymol.CmdException:
-                        print "problem z updatem2",a1,a2
-                        return ""
+                        return "Error"
 
 
             def get_res(s):
-                try:
-                    i = s.split("i. ")[1].split()[0]
-                    c = s.split("c. ")[1].split()[0]
-                    return (i+c.strip())
-                except:
-                    raise IndexError(s)
-            #self.window_of_selected_bonds_text.delete(1.0, Tk.END)
+                i = s.split("i. ")[1].split()[0]
+                c = s.split("c. ")[1].split()[0]
             text = "Currently selected residue pairs:\n"
-            #print self.DRAWN_BONDS
             for x in self.DRAWN_BONDS:
                 if x[0][:5] == "dist_":
-                    #print "dist",x,
                     text+="{}\t{}\t{}\n".format(x[1],x[2],get_dist(x[1],x[2]))
                 else:
                     y=map(get_res, x[:2])
                     text+="\t".join(y+[get_dist(*x[:2])])+"\n"
-
-            #text += "\n".join( "\t".join(map(get_res, x[:2])) for x in self.DRAWN_BONDS)
-            #print text
-            #self.window_of_selected_bonds_text.set(text[:-1])#.insert(Tk.END,text)
             self.window_of_selected_bonds_text.insert('1.0', text)
             self.window_of_selected_bonds_text.config(state="disabled")
-
-
-        """def draw_selected_from_pymol(self):
-            structure = self.current_structure_obj_var
-            for mer in self.SELECTED_MERS:
-                if self.restrict_to_structure_var.get():
-                    idx  = structure.translations.pdb2structseq
-                else:
-                    idx = structure.translations.resid2unal_fasta(mer)
-            #l = lines.Line2D"""
-
 
         def binaryColormap(self):
             cmapa = colors.ListedColormap(['grey','red','blue'])
@@ -2172,30 +1979,19 @@ def __init__(self):
 
         def comparison_mode_engaged(self,*args):
             self.clear_pymol_bonds()
-#            self.SELECTED_REGIONS=[]
-            #self.window_of_selected_bonds_text.set("")
             self.window_of_selected_bonds_text.config(state=Tk.NORMAL)
             self.window_of_selected_bonds_text.delete('1.0',Tk.END)
             self.window_of_selected_bonds_text.config(state="disabled")
             self.overlay_var.set(0)
-            #if self.comp_mode.get():
-            #    self.spin_comp_distance.pack(side=Tk.TOP)
-            #    self.menu_atom_mode.pack(side=Tk.TOP)
-            #else:
-            #    self.spin_comp_distance.pack_forget()
-            #    self.menu_atom_mode.pack_forget()
             self.makeSSplot(from_native=1)
 
         def overlay(self):
-            #return
             self.clear_pymol_bonds()
-            #self.SELECTED_REGIONS = []
             if self.overlay_var.get():
                 self.spin_min_var_4cmap.set("just DI")
                 self.spin_max_var_4cmap.set("just\nnative")
                 self.comp_mode.set(0)
             else:
-
                 self.spin_min_var_4cmap.set("%6f"%self.slider_min.get())
                 self.spin_max_var_4cmap.set("%6f"%self.slider_max.get())
             self.makeSSplot(from_overlay=1)
@@ -2209,48 +2005,26 @@ def __init__(self):
             self.recolor_by_trueness(any=True)
 
         def recolor_by_trueness(self,any=False,*args):
-            #self.recolor_by_trueness_var.set( not self.recolor_by_trueness_var.get()) #TODO WTF
             if any and self.recolor_by_any_trueness.get():
                 self.recolor_by_trueness_var.set(0)
             if not any and self.recolor_by_trueness_var.get():
                 self.recolor_by_any_trueness.set(0)
 
             if (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):
-                #self.toggleTP = Tk.Checkbutton(self.left_controls,text="Toggle True Positives (intrachain)",variable=self.trueness_show_intra) #,command=lambda: makeSSplot)
-                """self.toggleTP.pack()
-                #self.toggleTPm = Tk.Checkbutton(self.left_controls,text="Toggle True Positives (interchain)",variable=self.trueness_show_inter) #,command=lambda: makeSSplot)
-                self.toggleTPm.pack()
-                #self.all_combos_check = Tk.Checkbutton(self.left_controls,text="Consider interchain contacts only with the main chain",variable=self.all_combos_var) #,command=lambda: makeSSplot)
-    
-                #self.all_combos_check.pack()
-    
-                #self.toggleFP = Tk.Checkbutton(self.left_controls,text="Toggle False Positives",variable=trueness_show_false) #,command=lambda: makeSSplot)
-                self.toggleFP.pack()"""
-
                 self.SSMenu.entryconfig(11, state=Tk.NORMAL)
                 self.SSMenu.entryconfig(9, state=Tk.NORMAL)
                 self.SSMenu.entryconfig(10, state=Tk.NORMAL)
 
                 self.spin_min_var_4cmap.set("FP")
                 self.spin_max_var_4cmap.set("TP (intra)")
-
-
             else:
-                """self.toggleTP.pack_forget()
-                self.toggleTPm.pack_forget()
-                #self.all_combos_check.pack_forget()
-                self.toggleFP.pack_forget()"""
                 self.SSMenu.entryconfig(11, state=Tk.DISABLED)
                 self.SSMenu.entryconfig(9, state=Tk.DISABLED)
                 self.SSMenu.entryconfig(10, state=Tk.DISABLED)
-                #print "spin min var",self.spin_min_var.get()
                 self.spin_min_var_4cmap.set(str(self.spin_min_var.get()))
                 self.spin_max_var_4cmap.set(str(self.spin_max_var.get()))
             if self.map_structure_mode.get() != self.OPCJE[0]:
                 self.makeSSplot()
-                #self.redraw_bonds()
-            #self.clear_pymol_bonds()
-
             mpl.colorbar.ColorbarBase(self.cmap_ax, cmap=self.cmapa,
                                       norm=self.norm,
                                       orientation='vertical')
@@ -2259,7 +2033,6 @@ def __init__(self):
             self.redraw_bonds()
 
         def mapSelectionBetweenPlots(self):
-            ##self.plot_to_remember ##Setting when "Remember selection" button is pressed -value from map_structure_mode
             # TODO I powinien wywalac jak full plot?
             from_single = "Single" in self.plot_to_remember
             to_single = 'Single' in self.map_structure_mode.get()
@@ -2267,8 +2040,6 @@ def __init__(self):
             flip_axes = False #0,1-move x to y, 2-move y to x
             if self.SELECTED_REGIONS == []:
                 return
-            print "from",from_single,self.plot_to_remember,"to",to_single,self.map_structure_mode.get()
-
             if from_single:
                 from_struct = self.plot_to_remember.split("ture: ")[1]
                 from_struct_obj = [x for x in self.STRUCTURES if x.objId in from_struct][0]
@@ -2384,27 +2155,10 @@ def __init__(self):
                 Y = [Y[0],Y[-1]]
                 new_regions.append((X,Y,m))
 
-            print self.SELECTED_REGIONS
-            print "nowe",new_regions
-
             self.SELECTED_REGIONS = new_regions
 
 
         def alert_setting_change(self,*args):
-            # tkMessageBox.showinfo("Tytul alertu", "Zmieniona wartosc na "+map_structure_mode.get())
-            #self.comp_mode_check.pack_forget()
-            #self.restrict_check.pack_forget()
-            #self.recolor_by_trueness_check.pack_forget()
-
-            ##TODO
-            #self.spin_comp_distance.pack_forget()
-            #self.menu_atom_mode.pack_forget()
-            #self.cursor_position_frame.pack_forget()
-            ##
-            #self.toggle_show_bond_selection.pack_forget()
-            #self.toggleTP.pack_forget()
-            #self.toggleTPm.pack_forget()
-            #self.toggleFP.pack_forget()
             self.SELECTED_MERS = []
             if self.plot_to_remember is not None and self.map_structure_mode.get()!=self.OPCJE[0]:
                 self.mapSelectionBetweenPlots()
@@ -2412,7 +2166,6 @@ def __init__(self):
 
             self.FIGURE.clf()
             self.clear_pymol_bonds()
-            #        aplot = f.add_subplot(111)
             self.interface_mode.set(0)
             self.menubar.entryconfig("Interface plot", state=Tk.DISABLED)
             if "Single" in self.map_structure_mode.get():
@@ -2422,15 +2175,7 @@ def __init__(self):
                 self.fileMenu.entryconfig(6,state=Tk.NORMAL)
                 self.fileMenu.entryconfig(3, state=Tk.NORMAL)
                 self.fileMenu.entryconfig(4, state=Tk.NORMAL)
-                #    self.write_native_contacts_button.pack(side=Tk.LEFT)
-                #    self.write_all_contacts_button.pack(side=Tk.LEFT)
                 self.comp_mode.set(False)
-                """self.comp_mode_check.pack()
-                self.restrict_check.pack()
-                self.recolor_by_trueness_check.pack()
-                if self.overall_mode == 1:
-                    self.recolor_by_any_trueness_check.pack()"""
-
                 self.menubar.entryconfig("Single structure plot", state=Tk.NORMAL)
                 self.SSframe.grid(column=0,row=0)
                 self.get_pymol_selection.grid(column=0, row=5, sticky="S")
@@ -2439,10 +2184,6 @@ def __init__(self):
                 self.keep_selected_regions.grid(row=8,column=0, sticky="S")
                 self.legend.grid(column=0, row=9, sticky="S")
                 self.overlay_var.set(0)
-                #self.spin_comp_distance.pack(side=Tk.TOP)
-                #self.menu_atom_mode.pack(side=Tk.TOP)
-                #self.cursor_position_frame.pack(side=Tk.TOP)
-                #self.toggle_show_bond_selection.pack(side=Tk.TOP)
                 self.makeSSplot()
             elif "Interface:" == self.map_structure_mode.get().split()[0]:
                 self.current_structure_var = self.map_structure_mode.get().split("Interface: ")[1]
@@ -2459,7 +2200,6 @@ def __init__(self):
                 if not self.current_structure_obj_var.maps.has_key(dm.Structure.flat_modes[dm.Structure.mode]):
                     self.wait("Calculating native contacts map for {}".format(self.current_structure_obj_var.objId))
                     self.current_structure_obj_var.makeMultiStateContactFile(progress=self._wait_in_progress)
-                    # print [vars(i) for i in structure.residues]
                     self.current_structure_obj_var.makeContactMap(self.current_state_var)
                     self.wait_window.withdraw()
                 self.restrict_to_structure_var.set(1)
@@ -2472,7 +2212,6 @@ def __init__(self):
                 self.keep_shown_bonds.grid_remove()
                 self.keep_selected_regions.grid_remove()
                 self.clear_shown_bonds.grid_remove()
-    #            plt.subplots_adjust(left=0.03, bottom=0.03, right=1, top=1, wspace=0, hspace=0)
                 plt.subplots_adjust(left=0.07, bottom=0.05, right=0.97, top=0.97, wspace=0.01, hspace=0.01)
                 self.current_structure_var = None
                 self.current_structure_obj_var = None
@@ -2480,12 +2219,7 @@ def __init__(self):
                 self.fileMenu.entryconfig(6,state=Tk.DISABLED)
                 self.fileMenu.entryconfig(3,state=Tk.DISABLED)
                 self.fileMenu.entryconfig(4,state=Tk.DISABLED)
-                #    self.write_native_contacts_button.pack_forget()
-                #    self.write_all_contacts_button.pack_forget()
-                #self.spin_comp_distance.pack_forget()
-                #self.menu_atom_mode.pack_forget()
                 self.aplot = self.FIGURE.add_subplot(111)
-                #self.aplot.set_aspect('equal', 'datalim')
                 self.data = np.array(self.DATA_BACKUP)
                 if self.colormap.get() == "BinaryTP":
                     cmapa, norm = self.binaryColormap()
@@ -2514,18 +2248,13 @@ def __init__(self):
                     self.draw_selected_patch(patch)
             self.canvas.draw()
             self.customToolbar.limits = [self.aplot.get_xlim(),self.aplot.get_ylim()]
-            #print "limits",self.customToolbar.limits
-            #self.aplot.set_aspect('equal')
 
 
         def recalcTPrate(self): ###TODO z okazji interfaceu
-            #print "recalcing TP rate"
             if self.interface_mode.get():
                 if self.ds_over.get():
                     TPrate = (len(self.data2[self.data2 == 1.]),
                               len(self.data2[self.data2 == 0.1]))  # TP,FP  ## TODO co zrobic z interchain?
-                    #            print "TPRATE", TPrate, sum(TPrate)
-                    # print TPrate,sum(TPrate)
                     self.TPrate.set("%5.2f%%" % (TPrate[0] * 100. / sum(TPrate)))
                     self.TP_frame.grid(column=1, row=0, padx=10)
                 else: # TODO - nadal nie mam TP rate bez natywnych knotaktow
@@ -2533,36 +2262,20 @@ def __init__(self):
             elif self.overlay_var.get():
                 TPrate = (len(self.data2[np.triu(self.data2) == 1.]),
                           len(self.data2[np.triu(self.data2) == 0.1]))  # TP,FP  ## TODO co zrobic z interchain?
-                #            print "TPRATE", TPrate, sum(TPrate)
-                # print TPrate,sum(TPrate)
                 self.TPrate.set("%5.2f%%" % (TPrate[0] * 100. / sum(TPrate)))
                 self.TP_frame.grid(column=1, row=0, padx=10)
             elif (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):
                 TPrate = (len(self.data2[np.triu(self.data2) == 1.]),
                           len(self.data2[np.triu(self.data2) == 0.1]))  # TP,FP  ## TODO co zrobic z interchain?
-    #            print "TPRATE", TPrate, sum(TPrate)
-                #print TPrate,sum(TPrate)
                 self.TPrate.set("%5.2f%%" % (TPrate[0] * 100. / sum(TPrate)))
                 self.TP_frame.grid(column=1, row=0, padx=10)
             else:
                 if self.comp_mode.get():
                     TPrate=0
                     all=0
-                    """for x in xrange(self.data.shape[0]):
-                        for y in xrange(x+1,self.data.shape[0]):
-                            #print x,y,self.data[x][y]
-                            TPrate+=(type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get() and type(self.data[y][x]) != np.ma.core.MaskedConstant and self.data[y][x]>0)
-                            all+= (type(self.data[x][y]) != np.ma.core.MaskedConstant and self.data[x][y]>self.slider_min.get() and type(self.data[y][x]) != np.ma.core.MaskedConstant)
-    #                print "TPRATE",TPrate,all"""
-                    #u =np.where(np.triu(self.data) > self.slider_min.get())
-                    #l = np.where(np.tril(self.data)>0.)
-                    #TPrate = len(self.data[ u & (l[1],l[0])])
-                    #all = len(self.data[np.triu(self.data)>self.slider_min.get()])
                     mins = self.slider_min.get()
                     TPrate = len(set(zip(*(map(list,np.where(np.triu(np.transpose(self.data))>0.))))) & set(zip(*(map(list,np.where(np.triu(self.data)>mins))))))
                     all = len(set(zip(*(map(list,np.where(np.triu(self.data)>mins))))))
-                    #print TPrate,all, self.data[0,0],self.data[30,30]
-
                     self.TPrate.set("%5.2f%%" % (TPrate*100./all))
                                     #(TPrate*100./len(self.data[np.triu(self.data)>self.slider_min.get()])))
                     self.TP_frame.grid(column=1, row=0, padx=10)
@@ -2581,12 +2294,10 @@ def __init__(self):
                     else:
                         return self.current_structure_obj_var.struct_2.translations.struct2pdb(tick_val)
                 elif self.restrict_to_structure_var.get() or self.overlay_var.get():
-                    #print "was", tick_val, "is", self.current_structure_obj_var.translations.struct2pdb(tick_val)
                     return self.current_structure_obj_var.translations.struct2pdb(tick_val)
 
                 else:
                     return self.current_structure_obj_var.translations.singleplot_cursor(tick_val)
-                    #return tick_val
             except IndexError:
                 return ""
 
@@ -2616,11 +2327,9 @@ def __init__(self):
                 data2 = np.ma.masked_where(data2 < -0.75, data2)
                 self.data2 = data2
                 heatmap = self.aplot.pcolorfast(data2, cmap=cmapa, norm=norm, vmin=0.)  # , vmax=vmax)
-                # self.wait_window.quit()
                 if not self.HELD_LMB.get():
                     self.recalcTPrate()
             else:
-                #if not self.comp_mode.get(): self.TP_frame.grid_forget()
                 self.data = my_struct.makeSSarray(self.DATA_BACKUP, comparison=self.comp_mode.get(), distance=self.comp_distance.get(),
                                              restricted=True, state=self.current_state_var.get(), nonwc=self.rna_nonwc_pairs.get())
 
@@ -2648,7 +2357,6 @@ def __init__(self):
             self.cmapa = cmapa
             self.norm = norm
             self.SS_plots += my_struct.plotSS(self.FIGURE, self.aplot)
-            # self.aplot.set_aspect('equal', 'datalim')
             self.aplot.invert_yaxis()  # set_ylim(self.aplot.get_ylim()[::-1])
             self.aplot.set_xlabel("{} chain {}".format(my_struct.struct_1.objId,my_struct.struct_1.chain_simple))
             self.aplot.set_ylabel("{} chain {}".format(my_struct.struct_2.objId,my_struct.struct_2.chain_simple))
@@ -2657,7 +2365,6 @@ def __init__(self):
                 self.bonds_in_patches(patch[0],patch[1],[self.current_structure_obj_var],0)
             self.canvas.draw()
             self.customToolbar.update()
-
 
         def makeSSplot(self,*args,**kwargs):
             if self.interface_mode.get():
@@ -2675,12 +2382,10 @@ def __init__(self):
             if self.plot_to_remember is None:
                 self.SELECTED_REGIONS = []
             elif 'from_overlay' in kwargs:
-                print "over",self.SELECTED_REGIONS
                 if self.restrict_to_structure_var.get():
                     pass
                 else:
                     self.mapSelectionBetweenPlots()
-
             elif 'from_restrict' in kwargs:
                 self.mapSelectionBetweenPlots()
             elif 'from_native' in kwargs:
@@ -2701,20 +2406,11 @@ def __init__(self):
             self.SS_plots = []
             restricted = self.restrict_to_structure_var.get()
             self.aplot = plt.subplot2grid((60, 60), (1, 5), colspan=54,
-                                     rowspan=54)  # ,fig=FIGURE)#,fig=0)#FIGURE)#    add_subplot(211)
+                                     rowspan=54)
             self.aplot.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(self.tick_formatter_x))
             self.aplot.yaxis.set_major_formatter(mpl.ticker.FuncFormatter(self.tick_formatter_y))
             my_struct = self.current_structure_obj_var
-                #[x for x in self.STRUCTURES if x.objId in self.map_structure_mode.get().split(": ")[-1]][0]
-
             if self.overlay_var.get():
-                """if (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):
-                    self.data = my_struct.makeSSarray(self.DATA_BACKUP, comparison=self.comp_mode.get(),
-                                                      distance=self.comp_distance.get(),
-                                                      restricted=restricted, state=self.current_state_var.get(),
-                                                      nonwc=self.rna_nonwc_pairs.get())"""
-
-
                 data2 = my_struct.makeOLarray(self.DATA_BACKUP, distance=self.comp_distance.get(), restricted=restricted,
                                               nonwc=self.rna_nonwc_pairs.get(), vmin=self.slider_min.get(), state=self.current_state_var.get())
                 cmapa = self.overlay_cmap
@@ -2728,15 +2424,12 @@ def __init__(self):
                     heatmap = self.aplot.pcolormesh(data2, cmap=cmapa, norm=norm, vmin=0.)  # , vmax=vmax)
                 else:
                     heatmap = self.aplot.pcolorfast(data2, cmap=cmapa, norm=norm, vmin=0.)  # , vmax=vmax)
-                # self.wait_window.quit()
                 if not self.HELD_LMB.get() or from_states:
                     self.recalcTPrate()
 
             elif (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get()):  # TODO recalc only on change
                 self.data = my_struct.makeSSarray(self.DATA_BACKUP, comparison=self.comp_mode.get(), distance=self.comp_distance.get(),
                                              restricted=restricted, state=self.current_state_var.get(), nonwc=self.rna_nonwc_pairs.get())
-                #if not restricted: self.data = self.DATA_BACKUP
-                #else: self.data.mask = np.ma.nomask
                 data2 = np.array(self.data)
                 data2[data2 < self.slider_min.get()] = -0.1
                 data2 = my_struct.recolorSSarray(data2, self.slider_min.get(), distance_intra=self.comp_distance.get(),
@@ -2750,8 +2443,6 @@ def __init__(self):
                 cmapa.set_over(color="black")  # "red")
                 cmapa.set_under(color="white")
                 norm = self.TP_norm#None
-                #vmin = 0.5
-                #vmax = 2.5
                 bad = []
                 if not self.trueness_show_intra.get():
                     data2[data2 == 1.] = -1.
@@ -2765,7 +2456,6 @@ def __init__(self):
                     heatmap = self.aplot.pcolormesh(data2, cmap=cmapa,norm=norm, vmin=0.)#, vmax=vmax)
                 else:
                     heatmap = self.aplot.pcolorfast(data2, cmap=cmapa,norm=norm, vmin=0.)#, vmax=vmax)
-                #self.wait_window.quit()
                 if not self.HELD_LMB.get() or from_states:
                     self.recalcTPrate()
             else:
@@ -2801,22 +2491,15 @@ def __init__(self):
                 if not self.HELD_LMB.get() or from_states:
                     self.recalcTPrate()
                 self.data2 = None
-            #self.aplot.set_aspect('equal')
-            # self.aplot.set_aspect('equal', 'datalim')
             self.cmapa = cmapa
             self.norm = norm
             self.SS_plots += my_struct.plotSS(self.FIGURE, self.aplot, restricted=(restricted or self.overlay_var.get()))
-            #self.aplot.set_aspect('equal', 'datalim')
             for patch in self.SELECTED_REGIONS: ## TODO only draws on top
                 self.draw_selected_patch(patch)
                 self.bonds_in_patches(patch[0],patch[1],[self.current_structure_obj_var],0)
-            self.aplot.invert_yaxis()#set_ylim(self.aplot.get_ylim()[::-1])
-            #if self.restrict_to_structure_var.get() or self.overlay_var.get():
+            self.aplot.invert_yaxis()
             self.aplot.set_xlabel("{} chain {}".format(my_struct.objId, my_struct.chain_simple))
             self.aplot.set_ylabel("{} chain {}".format(my_struct.objId, my_struct.chain_simple))
-            #else:
-            #    self.aplot.set_xlabel("{}".format(my_struct.seqName[:15]+"(...)" if len(my_struct.seqName)>15 else ""))
-            #    self.aplot.set_ylabel("{}".format(my_struct.seqName[:15]+"(...)" if len(my_struct.seqName)>15 else ""))
             self.canvas.draw()
             self.customToolbar.update()
 
@@ -2824,11 +2507,8 @@ def __init__(self):
             def flip(x):
                 if x=="L": return "R"
                 else: return "L"
-
-    #        print "selected",self.SELECTED_REGIONS
             for i,reg in enumerate(self.SELECTED_REGIONS):
                 self.SELECTED_REGIONS[i] = list(reg[:-1])+[flip(reg[-1])]
-    #        print "new selected", self.SELECTED_REGIONS
             for path in self.AXLINES:
                 try:
                     path.remove()
@@ -2847,34 +2527,20 @@ def __init__(self):
             tmp_color_name = "tmp_color_%d" % len(self.DRAWN_BONDS)
             cmd.set_color(tmp_color_name,"[ %.3f, %.3f, %.3f ]" % color[:3])
             others = self.mark_on_similar.get()
-            print 'obj is',obj
             obj,clist,cmap,idx_ref = obj if obj else (False,False,False)
-            print "Mark on similar is",others,'obj is',obj
             for c in clist[0]: ######## TODO Important - changed to differentiate the "mark on similar option"
-                #print "doing now chain",c
                 for tmpi,chain in enumerate([c]+(cmap.get(c,[]) if others else [])):
-                    #print "tmpi,chain",tmpi,chain
                     r1,r2 = res1,res2
                     if others and tmpi:
                         r1 += idx_ref[(c,chain)]
                         r2 += idx_ref[(c,chain)]
-                    try:
-                        cmd.bond("%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1),
+                    cmd.bond("%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1),
                                 "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r2))
-                    except pymol.CmdException:
-                        print "bond","%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1), \
-                                "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r2)
-                    try:    cmd.select("tmp_select","%s i. %d+%d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1,r2))
-                    except pymol.CmdException:
-                        print "tmp_select","%s i. %d+%d and (alt A or alt '')and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1,r2)
+                    cmd.select("tmp_select","%s i. %d+%d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1,r2))
                     cmd.show("sticks","tmp_select")
-                    try:
-                        cmd.set_bond("stick_color",tmp_color_name, #str(color[:3]),
+                    cmd.set_bond("stick_color",tmp_color_name, #str(color[:3]),
                                  "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1),
                                 "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r2))
-                    except:
-                        print "setbond","%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1), \
-                                "%s i. %d and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r2)
                     cmd.deselect()
                     self.DRAWN_BONDS.append(("%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r1),
                                 "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj,chain) if obj else "", r2), r1,r2,obj))
@@ -2883,16 +2549,12 @@ def __init__(self):
             bonded_atom = "name CA and elem C"
             if dm.Structure.isRNA:
                 bonded_atom = "name P and elem P"
-
-            #r2,r1=r1,r2
-
             tmp_color_name = "tmp_color_%d" % len(self.DRAWN_BONDS)
             cmd.set_color(tmp_color_name,"[ %.3f, %.3f, %.3f ]" % color[:3])
             c1,c2 = self.current_structure_obj_var.struct_1.chain_simple,self.current_structure_obj_var.struct_2.chain_simple
             obj1,obj2 = self.current_structure_obj_var.struct_1.objId,self.current_structure_obj_var.struct_2.objId
 
             obj_name = "dist_{}".format(len(self.DRAWN_BONDS))
-            #print c1,c2
             cmd.distance(obj_name, "{} and c. {} and i. {} and {} and (alt A or alt '')".format(obj1, c1, r1, bonded_atom),
                          "{} and c. {} and i. {} and {} and (alt A or alt '')".format(obj2, c2, r2, bonded_atom))
             cmd.color(tmp_color_name, obj_name)
@@ -2900,11 +2562,9 @@ def __init__(self):
             self.DRAWN_BONDS.append([obj_name, "{}{}".format(r1, c1), "{}{}".format(r2, c2)])
 
         def add_pymol_bond_to_object_inter(self,res1, res2, color, obj=""):
-
             bonded_atom = "name CA and elem C"
             if dm.Structure.isRNA:
                 bonded_atom = "name P and elem P"
-
             tmp_color_name = "tmp_color_%d" % len(self.DRAWN_BONDS)
             cmd.set_color(tmp_color_name, "[ %.3f, %.3f, %.3f ]" % color[:3])
             others = self.mark_on_similar.get()
@@ -2912,11 +2572,6 @@ def __init__(self):
             if just_within:
                 just_within_cutoff = self.mark_on_similar_just_within_cutoff.get()
             obj, clist, cmap, idx_ref = obj if obj else (False, False, False)
-            """try:
-                assert len(obj.chain) == 1
-            except:
-                raise AssertionError("How did you manage to get both multichain and 'similar chains' options on? I refuse to work with a cheater")
-            """
             my_list = clist #+ cmap[clist[0]]
             pairs_to_bond = []
             cmd.set('valence', 1)
@@ -2964,9 +2619,6 @@ def __init__(self):
                                  "{} and c. {} and ".format(obj, c) if obj else "", r1),
                                  "%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % (
                                  "{} and c. {} and ".format(obj, chain) if obj else "", r2))
-                    #                    cmd.set_bond("valence",1, #str(color[:3]),
-                    #                                 "%s i. %d and name CA and elem C" % ("{} and c. {} and ".format(obj,c) if obj else "", r1),
-                    #                                "%s i. %d and name CA and elem C" % ("{} and c. {} and ".format(obj,chain) if obj else "", r2))
                     cmd.deselect()
                     self.DRAWN_BONDS.append(
                         ("%s i. %d and (alt A or alt '') and {}".format(bonded_atom) % ("{} and c. {} and ".format(obj, c) if obj else "", r1),
@@ -2983,17 +2635,13 @@ def __init__(self):
                     self.DRAWN_BONDS.append([obj_name,"{}{}".format(r1,c),"{}{}".format(r2,chain)])
 
         def clear_pymol_bonds(self):
-            print "should clean up, keep is set to",self.keep_shown_bonds_var.get()
             if self.keep_shown_bonds_var.get():
                 return
             for bond in self.DRAWN_BONDS:
                 if bond[0][:5]=="dist_":
                     cmd.delete(bond[0])
                 else:
-    #            if len(bond) > 1:
                     cmd.unbond(*bond[:2])
-    #            else:
-    #                cmd.delete(bond[0])
                 del bond
             self.DRAWN_BONDS = []
             self.window_of_selected_bonds_text.config(state=Tk.NORMAL)
@@ -3004,11 +2652,9 @@ def __init__(self):
             pass
 
         def add_pymol_bond(self,res1, res2, color, obj='', mode=0):
-    #        print "Adding?",mode, obj
             if mode == 0:
                 self.add_pymol_bond_to_object_intra(res1, res2, color, obj)
             elif len(obj[1])>1:
-    #            print "Will add inter"
                 self.add_pymol_bond_to_object_inter(res1, res2, color, obj)
 
         def bonds_in_patches(self, X, Y, structures=None, mode=0):
@@ -3017,22 +2663,17 @@ def __init__(self):
             single = "Single" in self.map_structure_mode.get()
             if single or self.interface_mode.get():
                 structures = [self.current_structure_obj_var]
-                #[x for x in self.STRUCTURES if x.objId in self.map_structure_mode.get().split(": ")[-1]]
             for structure in structures:  # active_structures:
-                #print "Zaznaczam w ", X, Y
                 if not structure.active: continue
                 for x in xrange(int(X[0]), int(X[1]) + 1):
                     for y in xrange(int(Y[0]), int(Y[1]) + 1):
                         if self.interface_mode.get():
                             if self.ds_over.get():
                                 value = self.data2[y][x]
-                                #print "is over and",value
-                                #print "for",x,y,"alt",self.data2[y][x]
                                 if type(value) == np.ma.core.MaskedConstant or value > 1:
                                     continue
                             else:
                                 value = self.data[y][x]
-                                #print "is not over and", value
                                 if type(value) == np.ma.core.MaskedConstant or value <= self.slider_min.get():
                                     continue
                         elif self.overlay_var.get():
@@ -3052,58 +2693,35 @@ def __init__(self):
                             sy = structure.struct_2.translations.struct2pdb(y)
                         elif single:
                             if self.restrict_to_structure_var.get() or self.overlay_var.get():
-                                #sx = structure.residues[x].pdbid
-                                #sy = structure.residues[y].pdbid
-                                #sx = structure.translations.struct2pdb(structure.translations.singleplot_restrict(x))
-                                #sy = structure.translations.struct2pdb(structure.translations.singleplot_restrict(y))
                                 sx = structure.translations.struct2pdb(x)
                                 sy = structure.translations.struct2pdb(y)
                             else:
-                                #sx = structure.SS_data_mapping[x][1][0] if structure.SS_data_mapping[x][1] else False
-                                #sy = structure.SS_data_mapping[y][1][0] if structure.SS_data_mapping[y][1] else False
                                 sx = structure.translations.struct2pdb(structure.translations.singleplot_bonds(x))
                                 sy = structure.translations.struct2pdb(structure.translations.singleplot_bonds(y))
                         else:
                             sx = structure.translations.struct2pdb(structure.translations.fullplot2struct(x))
                             sy = structure.translations.struct2pdb(structure.translations.fullplot2struct(y))
-    #                        sx = structure.FS_data_to_struct(x)
-    #                        sy = structure.FS_data_to_struct(y)
-                        #print "Bonda miedzy",sx,sy
                         if not sx or not sy: continue
                         color = self.get_bond_color(value)
-    #                    color = cmap(value / scale) if cmap else self.binaryColormapColor(value)
-    #                    print "Should add",sx,sy,color
-                        print "Adding bond",X,Y
                         if self.interface_mode.get():
                             self.add_pymol_bond_to_object_iface(sx,sy,color)
                         else:
                             self.add_pymol_bond(sx, sy, color, (structure.objId, structure.chain_list, structure.chain_map, structure.chain_idx_ref), mode=mode)
-                        print "Added bond", X, Y
-            print "Will update list"
             if single or self.interface_mode.get():
                 self.update_list_of_bonds()
-            print "updated list"
 
         def get_bond_color(self,value):
-            #cmap = self.colormap.get()
-            #if cmap == "BinaryTP":
-            #    return self.binaryColormapColor(value)
-            #cmap = cm.get_cmap(cmap)
-            #cmap = self.cmapa
             if (self.recolor_by_trueness_var.get() or self.recolor_by_any_trueness.get() or self.overlay_var.get()) or (self.interface_mode.get() and self.ds_over.get()):
                 if value>2.5: value=2.5
                 scale = 2.0
-                #value -= 0.5
             else:
                 if value>self.slider_max.get(): value=self.slider_max.get()
                 scale = self.slider_max.get() - self.slider_min.get()
-                #value -= self.slider_min.get()
             return self.cmapa((value-self.slider_min.get())/scale) #TODO a jak w binary colormap?
 
 
 
         def redraw_bonds(self,*args):
-            print "redrawing bonds"
             self.clear_pymol_bonds()
             for X, Y, fp2 in self.SELECTED_REGIONS:
                 self.bonds_in_patches(X, Y, mode=(fp2 == "R"))
@@ -3111,9 +2729,6 @@ def __init__(self):
 
         def draw_selected_patch(self, patch):
             X, Y, typ = patch
-    #        print "drawing selected patch"
-    #        print X
-    #        print Y
             X = map(int,X)
             Y = map(int,Y)
 
@@ -3194,10 +2809,7 @@ def __init__(self):
                 return
             X = [X[0], X[-1]]
             Y = [Y[0], Y[-1]]
-            #        print "post", X, Y
-            #        print self.SELECTED_REGIONS
             self.SELECTED_REGIONS = [(X, Y, mode)]
-            #        print self.SELECTED_REGIONS
             if not self.HELD_CTRL.get():
                 self.clear_pymol_bonds()
                 for line in self.AXLINES:
@@ -3207,7 +2819,6 @@ def __init__(self):
                     except ValueError:
                         pass
                         self.AXLINES = []
-            # if mode=="L" or len(chains)>1:
             self.draw_selected_patch((X, Y, "L"))
             self.canvas.draw()
             self.bonds_in_patches(X, Y, structure, mode=0)
@@ -3225,15 +2836,11 @@ def __init__(self):
                 tkMessageBox.showerror(message="You must select -exactly- two, non-consecutive (in terms or residue indices) regions!")
                 return
 
-
             if len(chains)>1:
                 selections = map(lambda x: x[0] if x[1]==structure.chain_simple else map(lambda y: y-structure.chain_idx_ref[(structure.chain_simple,x[1])],x[0]),selections)
             else:
                 selections = map(lambda x: x[0],selections)
-
-    #        print "selections",selections
             X,Y = selections
-    #        print "pre", X,Y
             if self.restrict_to_structure_var.get():
                 X = map(lambda x: structure.translations.pdb2structseq[x],X)
                 Y = map(lambda x: structure.translations.pdb2structseq[x],Y)
@@ -3249,10 +2856,7 @@ def __init__(self):
                 return
             X=[X[0],X[-1]]
             Y=[Y[0],Y[-1]]
-    #        print "post", X, Y
-    #        print self.SELECTED_REGIONS
             self.SELECTED_REGIONS = [(X, Y, mode)]
-    #        print self.SELECTED_REGIONS
             if not self.HELD_CTRL.get():
                 self.clear_pymol_bonds()
                 for line in self.AXLINES:
@@ -3262,18 +2866,13 @@ def __init__(self):
                     except ValueError:
                         pass
                         self.AXLINES = []
-            #if mode=="L" or len(chains)>1:
             self.draw_selected_patch((X, Y, mode))
             self.canvas.draw()
             self.bonds_in_patches(X, Y, structure, mode=(mode == "R"))
 
-
         def select_on_plot(self,final_pos):
-
-            #size = self.aplot.get_xlim()[1]#len(self.data) + 1
             sizeX0,sizeX1 = sorted(self.aplot.get_xlim())#len(self.data) + 1
             sizeY0,sizeY1 = sorted(self.aplot.get_ylim())#len(self.data) + 1
-            #print "held ctrl=",self.HELD_CTRL.get()
             if not self.HELD_CTRL.get():
                 self.clear_pymol_bonds()
                 for line in self.AXLINES:
@@ -3288,27 +2887,18 @@ def __init__(self):
                 self.canvas.draw()
                 if sel_reg and self.LAST_CLICKED_POS[0]==final_pos[0] and self.LAST_CLICKED_POS[1]==final_pos[1]:
                     return
-            #print "pres,release",self.LAST_CLICKED_POS,final_pos
-
 
             X = [max(sizeX0, min([self.LAST_CLICKED_POS[0], final_pos[0]])), min(max([self.LAST_CLICKED_POS[0], final_pos[0]]), sizeX1)]
             Y = [max(sizeY0, min([self.LAST_CLICKED_POS[1], final_pos[1]])), min(max([self.LAST_CLICKED_POS[1], final_pos[1]]), sizeY1)]
-            #print "x,y",X,Y
             self.SELECTED_REGIONS.append((X, Y, final_pos[2]))
             s = []
             if "Single" in self.map_structure_mode.get():
-                #            pass
                 s = [self.current_structure_obj_var]
-            #    self.bonds_in_patches(X, Y, s, mode=(final_pos[2] == "R"))
-                #[x for x in self.STRUCTURES if x.objId in self.map_structure_mode.get().split(": ")[-1] and
-                                  #x.active][:1]
             else:
                 s=self.STRUCTURES
             if self.interface_mode.get() or final_pos[2]=="L" or any(len(x.chain_list)>1 for x in s):
                 self.draw_selected_patch((X, Y, final_pos[2]))
-
             self.canvas.draw()
-
             self.bonds_in_patches(X, Y,  s, mode=(final_pos[2] == "R"))
             return
 
@@ -3316,7 +2906,6 @@ def __init__(self):
             if self.customToolbar._active is not None:
                 return
             self.selection_is_happening.set(1)
-            #print "x,y,xd,yd", event.x, event.y, event.xdata, event.ydata
             if event.xdata is not None and event.ydata is not None:
                 self.LAST_CLICKED_POS = [event.xdata, event.ydata, event.x, event.y]
             else:
@@ -3326,8 +2915,6 @@ def __init__(self):
         def onclick2_plot(self,event):
             if self.customToolbar._active is not None:
                 return
-            #print "x,y,xd,yd",event.x,event.y,event.xdata,event.ydata
-            #print "lim",self.aplot.get_xlim(),self.aplot.get_ylim()
             self.selection_is_happening.set(0)
             if self.selection_box != None:
                 self.selection_box.remove()
@@ -3338,7 +2925,6 @@ def __init__(self):
                 return
             xdat = event.xdata
             ydat = event.ydata
-            #print xdat,ydat
             if xdat is None:
                 if event.x < self.LAST_CLICKED_POS[2]:
                     xdat =  min(self.aplot.get_xlim())
@@ -3356,9 +2942,6 @@ def __init__(self):
             if self.map_structure_mode.get() == self.OPCJE[0]:
                 return
             self.size = len(self.data) + 1
-            #if self.LAST_TRACKED_POS is None:
-            #    self.LAST_TRACKED_POS = [event.x,event.y]
-            #    return
             xdat = event.xdata
             ydat = event.ydata
             if xdat is None or ydat is None:
@@ -3375,7 +2958,6 @@ def __init__(self):
                     actualY = self.current_structure_obj_var.translations.struct2pdb(ydat) if self.restrict_to_structure_var.get() else self.current_structure_obj_var.translations.singleplot_cursor(ydat)
                 if None in [actualX,actualY]:
                     actualX,actualY = None,None
-            #print "Pointing at",actualX, actualY
             self.current_cursor_position_X.set("% 5d" % actualX if actualX is not None else "  NaN")
             self.current_cursor_position_Y.set("% 5d" % actualY if actualY is not None else "  NaN")
             if self.selection_is_happening.get():
@@ -3390,16 +2972,6 @@ def __init__(self):
                     self.selection_box = p
                 except:
                     pass
-        """def guess_if_protein(self,data):
-            allowed = "actugACTUGnN.-"
-            return any(set(allowed)!=set(x[0]+allowed) for x in data)"""
-
-        """def confirm_if_rna(self):
-            rna_win = Tk.Toplevel(self.root)
-            Tk.Label(rna_win,text="Our guess is that you are working on RNA/DNA - is that correct?").pack()
-            Tk.Button(rna_win,text="Yes",command=lambda: [self.is_rna.set(1), rna_win.quit(), rna_win.destroy()]).pack()
-            Tk.Button(rna_win, text="No", command=lambda: [self.is_rna.set(0), rna_win.quit(),rna_win.destroy()]).pack()
-            rna_win.mainloop()"""
 
         def recalcCmap(self,selected=None):
             if selected is not None:
@@ -3421,7 +2993,6 @@ def __init__(self):
                             self.wait(
                                 "Calculating native contacts map for {}".format(double.objId))
                             double.makeMultiStateContactFile(progress=self._wait_in_progress)
-                            # print [vars(i) for i in structure.residues]
                             double.makeContactMap(self.current_state_var)
                             double.wait_window.withdraw()
             else:
@@ -3442,7 +3013,6 @@ def __init__(self):
                         self.wait(
                             "Calculating native contacts map for {}".format(double.objId))
                         double.makeMultiStateContactFile(progress=self._wait_in_progress)
-                        # print [vars(i) for i in structure.residues]
                         double.makeContactMap(self.current_state_var)
                         double.wait_window.withdraw()
             self.plot_to_remember = True
@@ -3451,19 +3021,12 @@ def __init__(self):
 
         def start_plot(self, self_mode, *args):
             self.loader_window.withdraw()
-            #self.loader_window.destroy()
 
-            print "Setting mode to", self_mode
             self.overall_mode = self_mode
 
             # READ IN ALIGNMENT
             if self.alignment.get():
                 importantSeqs = self.read_in_alignment()
-
-                #self.is_rna.set(not self.guess_if_protein(importantSeqs.values()))
-
-                #if self.is_rna.get():
-                #    self.confirm_if_rna()
                 dm.Structure.already_swapped = 0
                 if self.is_rna.get():
                     dm.Structure.isRNA = True
@@ -3490,7 +3053,6 @@ def __init__(self):
                         self.is_rna.set(0)
                     print "Retrying with RNA set to",dm.Structure.isRNA
                     for seq, dane in importantSeqs.items():
-                        #print "Dane",dane
                         try:
                             self.STRUCTURES.append(dm.Structure(dane[1], dane[2], seq, dane[0], dane[3], dane[4], dane[5], splits=dane[-1]))
                         except dm.ResetError:
@@ -3500,15 +3062,11 @@ def __init__(self):
             _num = 1
             for idx,structure in enumerate(self.STRUCTURES):
                 self.OPCJE.append("Single structure: " + structure.objId)
-                #structure.temp_path = self.path
                 self.wait("Calculating native contacts map for {}".format(structure.objId))
                 structure.makeMultiStateContactFile(progress=self._wait_in_progress)
-                #print [vars(i) for i in structure.residues]
                 structure.makeContactMap(1)
-                #print [vars(i) for i in structure.residues]
                 if self.overall_mode == 1:
                     structure.makeAnyContactMaps()
-                #print structure.objId, structure.chain_list, structure.chains_to_keep
                 if structure.chains_to_keep:
                     self.wait("Calculating interchain contacts map for {}".format(structure.objId))
                     structure.makeMultiChainContactFile(progress=self._wait_in_progress)
@@ -3516,36 +3074,28 @@ def __init__(self):
                 _num = max(_num, structure.num_states)
                 self.wait_window.withdraw()
                 self.RCmenu.add_command(label=structure.objId, command=lambda x=idx: self.recalcCmap(x))
-            #print self.STRUCTURES
             for i,s1 in enumerate(self.STRUCTURES):
                 for s2 in self.STRUCTURES[i+1:]:
                     if s1.iface and s2.iface:
                         self.DOUBLE_STRUCTURES.append(dm.DoubleStructure(s1,s2))
                         self.OPCJE.append("Interface: " + self.DOUBLE_STRUCTURES[-1].objId)
-                        #self.DOUBLE_STRUCTURES[-1].temp_path = self.path
-
 
             self.last_state_var.set(_num)
             self.current_state_spin.config(to=_num)
             self.option_menu = Tk.OptionMenu(self.mode_frame, self.map_structure_mode, *self.OPCJE)
             self.option_menu.grid(column=0, row=0,sticky="NW")
-            #self.quit_button.pack(side=Tk.RIGHT)
-            #self.reset_button.pack(side=Tk.RIGHT)
-            #self.save_png_button.pack(side=Tk.RIGHT)
-            #self.save_svg_button.pack(side=Tk.RIGHT)
 
             if self.overall_mode == 1:
                 self.SSMenu.entryconfig(7, state=Tk.NORMAL)
                 self.states_frame.grid(column=2, row=0,padx=10)
             else:
-                self.goto_first_button.forget()#grid(column=6, row=0, rowspan=2)
-                self.current_state_spin.forget()#grid(column=7, row=0, rowspan=2)
+                self.goto_first_button.forget()
+                self.current_state_spin.forget()
                 self.goto_last_button.forget()
 
             print "Will now read DI scores"
             size = 0
             with open(self.discores.get()) as input:
-                #size = int(sqrt(len(input.readlines()) * 2))
                 minimal_idx = None
                 max_idx = None
                 for line in input.readlines():
@@ -3567,12 +3117,6 @@ def __init__(self):
                 self.ask_for_start(minimal_idx, actual_start)
                 X, Y = len(self.data), len(self.data)
                 skip = actual_start.get()
-                #for x in xrange(X):
-                #    for y in xrange(Y):
-                #        if x + skip < X and y + skip < Y:
-                #            self.data[x][y] = self.data[x + skip][y + skip]
-                #        else:
-                #            self.data[x][y] = 0
 
             with open(self.discores.get()) as input:
                 check = True
@@ -3582,23 +3126,15 @@ def __init__(self):
                     if check:
                         check = False
                         if len(line.split())>3:
-                            #try:
-                            #    _ = float(line[3])
-                            #    di_loc.set(3)
-                            #except:
-                                loc = tkSimpleDialog.askinteger("Input","In which column ({}-{}) are the DI scores?\nExample line from your file:\n\n{}".format(1,len(line.split()),line), \
-                                                                 parent=self.root,minvalue=1,maxvalue=len(line.split()))
-                                if loc is not None:
-                                    di_loc.set(loc-1)
-                                else:
-                                    di_loc.set(len(line.split())-1)
+                            loc = tkSimpleDialog.askinteger("Input","In which column ({}-{}) are the DI scores?\nExample line from your file:\n\n{}".format(1,len(line.split()),line), \
+                                                             parent=self.root,minvalue=1,maxvalue=len(line.split()))
+                            if loc is not None:
+                                di_loc.set(loc-1)
+                            else:
+                                di_loc.set(len(line.split())-1)
                     line = line.split()
                     self.data[int(line[0])-skip][int(line[1])-skip] = float(line[di_loc.get()])  # /scale
                     self.data[int(line[1])-skip][int(line[0])-skip] = float(line[di_loc.get()])
-
-
-
-
 
             self.UPPER_DATA_BOUND.set(max([max(i) for i in self.data]))
             self.DATA_BACKUP = np.array(self.data)
@@ -3621,7 +3157,6 @@ def __init__(self):
             self.canvas.draw()
             self.customToolbar.limits = [self.aplot.get_xlim(), self.aplot.get_ylim()]
 
-
             ### MARK ON SIMILAR
 
             if not any([s.chains_to_keep for s in self.STRUCTURES]):
@@ -3639,19 +3174,10 @@ def __init__(self):
                 self.comp_atom_mode.set(dm.Structure.available_modes[0])
                 self.menu_atom_mode_prot.grid(column=0, row=1, rowspan=2)
 
-
-                #self.recolor_by_any_trueness.trace("w",self.recolor_by_any_trueness_do)
-                #Tk.Button(self.left_controls, text="Recolor by nativeness", command=self.recolor_by_trueness)  # ,command=lambda: makeSSplot)
-
-
-
             self.restrict_to_structure_var.trace("w", lambda *x: self.makeSSplot(from_restrict=1))
             self.trueness_show_intra.trace("w", self.makeSSplot)
             self.trueness_show_inter.trace("w", self.makeSSplot)
             self.trueness_show_false.trace("w", self.makeSSplot)
-            #self.all_combos_var.trace("w", self.makeSSplot)
-
-
 
             self.cid = self.canvas.mpl_connect('button_press_event', self.onclick_plot)
             self.cid2 = self.canvas.mpl_connect('button_release_event', self.onclick2_plot)
@@ -3662,17 +3188,10 @@ def __init__(self):
             self.root.deiconify()
             sw = self.mode_frame.winfo_width()
             sh = self.mode_frame.winfo_height()
-            #print "Setting w",sw,"h",sh
             hei = self.root.winfo_height()
             wid = self.root.winfo_width()
-            #print hei,wid
-
-    #        self.root.minsize(820,700)
-    #        self.root.aspect(620, 530, 620, 530)
             self.root.grid_propagate(0)
-            #self.PLOT_CANVAS_HEIGHT = self.content.winfo_height()
             self.root.bind('<Configure>', self.resize)
-
 
 #            self.root.mainloop()
         def resize(self, event):
@@ -3681,23 +3200,4 @@ def __init__(self):
                 self.upper_bar_canvas.configure(width=self.plot_field.winfo_width()-10)
             except Tk.TclError:
                 pass
-            #size = min(self.plot_field.winfo_height(), self.plot_field.winfo_width())-2
-            #self.canvas.configure(height=size,width=size)
-            #self.left_bar_scroll.configure(height=self.content.winfo_height())
 
-            #import time
-            #print "Resizing",event.width, event.height
-
-            #hei = self.root.winfo_height()
-            #wid = self.root.winfo_width()
-            #print "Firing on window",hei,wid,time.time()
-    #        sw = self.mode_frame.winfo_width()
-    #        sh = self.mode_frame.winfo_height()
-    #        h = min(wid - sw, hei - sh)#*1./self.default_plot_dpi
-    #        w=h
-    #        print "Setting w",w,"h",h
-    #        self.plot_field.config(width=w, height=h)
-    #        self.canvas.draw()
-            #self.FIGURE.set_figwidth(w,forward=True)
-            #self.FIGURE.set_figheight(h,forward=True)
-            #self.root.wm_deiconify()

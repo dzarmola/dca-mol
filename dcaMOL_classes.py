@@ -3,7 +3,6 @@ from needle import pairwise_rna as nw_rna
 from needle import sekwencja as Sekwencja
 from needle import consensus, allowed_characters_prot, allowed_characters_rna
 
-from math import sqrt
 try:
     from Bio.SeqUtils import seq1
 except:
@@ -14,7 +13,6 @@ from platform import system as platform_system
 import time
 
 import matplotlib.pyplot as plt
-#import matplotlib as mpl
 import tkMessageBox
 
 from pymol import cmd,preset,util
@@ -78,10 +76,8 @@ def getChainMap(objId, my_chains):
 
 
 def make_a_snowman(starting_struct, further_structs, seqName):
-    #print "make a snowman",[starting_struct, further_structs, seqName]
     id, chain = starting_struct
     chain = chain.split(".")[0] if chain else cmd.get_chains(id)[0]
-    print cmd.get_object_list()
     selection = "({} and c. {} and polymer)".format(id, chain)
     cnt = 1
     OTHER_NUMBERING = 1  # False
@@ -89,7 +85,6 @@ def make_a_snowman(starting_struct, further_structs, seqName):
     _lens = []
 
     newName = [id+chain]
-    print "Selection is", selection
 
     cmd.iterate(selection + " and name CA and elem C and (alt A or alt '')", "resvs.append(resi)", space=space)
     _lens.append(len(space['resvs']))
@@ -123,7 +118,6 @@ def make_a_snowman(starting_struct, further_structs, seqName):
         _lens.append(len(space['resvs']))
     newName = "_".join(newName)
     cmd.create(newName, selection, quiet=0)
-    #cmd.get_fastastr(newName)
     # TODO remove source objects
     for x in [[id]] + further_structs:
         cmd.delete(x[0])
@@ -219,61 +213,6 @@ class Residue:
         self.ss = ss  # boolean
         self.insert = False
 
-
-
-class Residue_old:
-    def __init__(self, res_name, str_resid, seq_resid, atoms, insert, ss):
-        self.name = res_name
-        self.seqid = seq_resid
-        self.pdbid = str_resid
-        self.atoms = atoms
-        self.Calpha = None  # smthing from atoms
-        self.Cbeta = None  # smthing from atoms
-        self.insert = insert  # boolean
-        self.ss = ss
-        self.prepare_atoms()
-
-    def prepare_atoms(self):
-        atoms = []
-        self.heavy_atoms = []
-        self.Calpha = None
-        self.Cbeta = None
-        #            n,rn,rv,a,e,q,s,x,y,z
-        tmp = []
-        for a in self.atoms:
-            if not a[3]:
-                if tmp:
-                    x = sorted(tmp, key=lambda y: y[5])[0]
-                    atoms.append(Atom(x[0], x[4], x[7], x[8], x[9]))
-                atoms.append(Atom(a[0], a[4], a[7], a[8], a[9]))
-            else:
-                tmp.append(a)
-        for atom in atoms:
-            if atom.name != "H":
-                self.heavy_atoms.append(atom)
-            if atom.name == "CA" and atom.elem == "C":
-                self.Calpha = atom
-            if atom.name == "CB":
-                self.Cbeta = atom
-        #if not self.Calpha:
-        #    print self.atoms
-        self.atoms = atoms
-
-    def within_distance(self, other_res, distance=8., mode="CA"):
-        if mode == "CA":
-            return RMSD(self.Calpha, other_res.Calpha) < distance
-        elif mode == "CB":
-            return RMSD(self.Cbeta, other_res.Cbeta) < distance
-        elif mode == "heavy":
-            for i in self.heavy_atoms:
-                for j in other_res.heavy_atoms:
-                    if RMSD(i, j) < distance:
-                        return True
-            return False
-        else:
-            raise ValueError("Not implemented")
-
-
 class Translation:
     def __init__(self):
         self.alignment2full_di = []
@@ -327,13 +266,9 @@ class Translation:
         ### <
 
     def u2s(self, me, splits=None):
-    #def u2s(self, alignseq, structseq, splits=None):
         alignseq = me.sequence
         structseq = me.str_sequence
         ualignseq = "".join([i for i in alignseq if i not in [".", "-"]])
-        #print ualignseq
-        #print structseq
-        # print nw
         try:
             if splits is None:
                 (uaseq, sseq), _ = nw(ualignseq, structseq)
@@ -359,9 +294,7 @@ or\n
 compared to the uploaded structure. Do you want to swap analysis type?
 (Selecting "OK" will change analysis type and retry ; "CANCEL" resets the program)""")
             raise RetryError if retry else ResetError
-        print "splits is",splits
         uaseq,sseq = mapping(uaseq,sseq,me.seqName,me.objId,double=(splits is not None))
-        #print uaseq,sseq
 
         for i in alignseq: # TODO probably useless
             if i not in ["-", "."]:
@@ -425,16 +358,7 @@ compared to the uploaded structure. Do you want to swap analysis type?\n
         else:
             Structure.version = 1.8
             (arseq,astructseq),_ = nw(rseq,structseq)
-            # print "Before alignment"
-            # print structseq
-            # print rseq
-            # print "After"
-            # print astructseq
-            # print arseq
             assert astructseq == astructseq.replace("-","") ### Dziwne, ze struktura ma cos wiecej niz sekwencja, raczej jest to error
-            #print "struct_seq",astructseq
-            #print "rseq",arseq
-            #print "p2s"
             _rcnt = -1
             _scnt = -1
 
@@ -482,17 +406,8 @@ compared to the uploaded structure. Do you want to swap analysis type?\n
     def singleplot_native(self, idx_with_inserts):
         try:
             return self.structseq2cmap[self.unal_fasta2structseq[idx_with_inserts]]
-            #return self.structseq2pdb[self.unal_fasta2structseq[idx_with_inserts]]
-            #return self.unal_fasta2structseq[idx_with_inserts]
-        # return self.structseq2pdb[self.unal_fasta2structseq[self.alignment2unal[idx_with_inserts]]]
         except TypeError:
             return None
-        """except e:
-            raise e
-            print self.unal_fasta2structseq, len(self.unal_fasta2structseq), idx_with_inserts
-            print self.unal_fasta, len(self.unal_fasta)
-            print self.unal_fasta2structseq[idx_with_inserts]
-            print self.structseq2pdb, len(self.structseq2pdb)"""
 
     def singleplot(self, unal_idx):
         try:
@@ -515,9 +430,6 @@ compared to the uploaded structure. Do you want to swap analysis type?\n
             return None
         except IndexError:
             return None
-#            print unal_idx
-#            print self.unal_fasta2structseq
- #           raise IndexError
 
     def singleplot_restrict(self, struct_idx):
         try:
@@ -534,28 +446,12 @@ compared to the uploaded structure. Do you want to swap analysis type?\n
         except TypeError:
             return None
 
-    """def unal_fasta2resid(self, alnid):
-        try:
-            return self.structseq2pdb[self.unal_fasta2structseq[alnid]]
-        except TypeError:
-            return None
-        except KeyError:
-            return None
-        except IndexError:
-            print alnid
-            print self.unal_fasta2structseq,len(self.unal_fasta2structseq)
-            print self.unal_fasta2structseq[alnid]
-            print self.structseq2pdb"""
-
     def struct2pdb(self,sid):
         try:
-            #print sid, self.structseq2pdb
             return self.structseq2pdb[sid]
         except TypeError:
-            #print self.structseq2pdb,len(self.structseq2pdb)
             return None
         except:
-            #print sid, self.structseq2pdb
             raise IndexError
 
 
@@ -580,18 +476,15 @@ class Structure:
     def __init__(self, objId, chain, seqName, sequence,keep_others=False,further_structs=False,iface=False,splits=None):
         verify_nw()
         seqName = seqName.replace(" ","_").replace("/","_").replace("\\","_")
-        #print "FS:",bool(further_structs)
         if further_structs:
             _lens,newName = make_a_snowman((objId,chain),further_structs,seqName)
             objId = newName
             chain="A"
             if splits is not None:
                 splits = [splits,_lens]
-            print objId
         self.iface = iface
         self.objId = objId
         self.chain_list = ([chain] if "." not in chain else chain.split(".")) if chain else cmd.get_chains(objId)
-        #self.chain = "(" + " or ".join(["c. "+x for x in self.chain_list]) + ")"
         self.chain_simple = self.chain_list[0]
         self.chain = "( c. {} )".format(self.chain_simple)
         self.seqName = seqName
@@ -601,14 +494,10 @@ class Structure:
         self.residues_mapping()
         if not self.str_sequence:
             self.str_sequence = "".join(x.name[-1] for x in self.residues)
-        #print "Sequence is", self.str_sequence
-
-        #self.temp_path = ""
 
         self.translations = Translation()
         self.translations.a2fd(sequence)
         self.translations.u2s(self,splits)
-        #self.translations.u2s(self.sequence,self.str_sequence,splits)
         already_there = "DM_" in objId and objId.strip("DM_") in cmd.get_object_list('(all)')
 
         self.sequence_residues = []
@@ -623,9 +512,7 @@ class Structure:
             self.chain_map,self.chains_to_keep,self.chain_idx_ref = getChainMap(objId, (chain.split(".") if "." in chain else chain) if chain else
             cmd.get_chains(objId)[0])
 
-        #self.residues_mapping()
         self.translations.p2s(self.residues,self.str_sequence)
-        #self.mapping()
 
         self.num_states = cmd.count_states(selection="(%s and %s)"%(self.objId,self.chain))
         self.current_state = 1
@@ -633,8 +520,6 @@ class Structure:
 
 
         cmd.center("(%s and %s)"%(self.objId,self.chain))
-#        cmd.hide("cartoon","(%s and not  %s)"%(self.objId,
-#            self.chain if not self.chains_to_keep else "( %s or %s )"%(self.chain,"c. "+(" or c. ".join(self.chains_to_keep))) ))
         cmd.remove("(%s and not  %s)"%(self.objId,
             self.chain if not self.chains_to_keep else "( %s or %s )"%(self.chain,"c. "+(" or c. ".join(self.chains_to_keep))) ))
 
@@ -642,24 +527,10 @@ class Structure:
             cmd.hide("everything",objId.strip("DM_"))
         else:
             cmd.bg_color(color = "white")
-            #preset.pretty(self.objId)
             preset.pretty("(%s and %s)"%(self.objId,self.chain))
-            # cmd.color("grey60","(%s and %s)"%(self.objId,self.chain))
             for c in self.chains_to_keep:
                 preset.pretty("(%s and c. %s)"%(self.objId,c))
-                # cmd.color("grey60", "(%s and %s)" % (self.objId, c))
         self.paintInserts()
-        #self.makeContactMap()
-
-        if 0:
-            m = cmd.get_model(
-            "(%s and %s) and polymer and (elem C or elem N or elem O or elem P) " % (self.objId, self.chain),
-            state=1)
-            #print vars(m).keys()
-            #print vars(m.molecule)
-            # print vars(m.atom[0])
-            exit(1)
-
 
     def residues_mapping(self):
         space = {'residues': []}
@@ -682,7 +553,6 @@ class Structure:
         if brn != "HOH" and (Structure.isRNA or ("CA","C") in tmp): self.residues.append(Residue(brn, brv, None, bs))  # brv was None
 
     def read_in_map_oneliner_arr(self,line):
-        ## line = "num_line dist(last_idx,last_idx-1) . . . dist(1,0)"
         size = len(self.translations.pdb2structseq)
         #size  ### TODO probably better that structseq2pdb
         mapa = np.zeros((size, size))
@@ -711,14 +581,9 @@ class Structure:
         name = Structure.temp_path + "/_temp_" + self.objId + "{}_{}.map"
         with open(name.format("_multichain" if mchain else "", Structure.flat_modes[Structure.mode])) as mapfile:
             for x, line in enumerate(mapfile):
-                #print "Reading in contact map from file: ","state",state,"multichain :",mchain
                 if x+1 == state:
-                #    print "Found state",x+1
                     if mchain:
-                #        print "Reading in multichain from ",name.format("_multichain" if mchain else "", Structure.mode)
                         self.interchain_maps[Structure.flat_modes[Structure.mode]] = self.read_in_map_oneliner_arr(line)
-                #        print "done", self.interchain_maps.keys()
-
                     else:
                         self.maps[Structure.flat_modes[Structure.mode]] = self.read_in_map_oneliner_arr(line)
                 elif x >= state:
@@ -769,13 +634,6 @@ class Structure:
             for stan in xrange(1, self.num_states+1, step if step else 1):
                 if progress:
                     progress("State: {}/{}".format(stan, self.num_states))
-                    #                space = {'residues': []}
-                    #                cmd.iterate_state(1, "( %s and %s )" % (self.objId, self.chain),
-                    #                          "residues.append([name,resn,resv,alt,elem,q,ss,x,y,z])",
-                    #                          space=space)
-
-                #########   C1
-                #print "state", stan, "C1"
                 output_C1.write(str(stan+1))
                 lista = cmd.get_model(
                     "(%s and %s) and polymer and elem C and name C1' and (alt A or alt '')" % (self.objId, self.chain),
@@ -787,8 +645,6 @@ class Structure:
                 output_C1.write("\n")
                 output_C1.flush()
 
-                #########   C4
-                #print "state", stan, "C4"
                 output_C4.write(str(stan+1))
                 lista = cmd.get_model(
                     "(%s and %s) and polymer and elem C and name C4' and (alt A or alt '')" % (self.objId, self.chain),
@@ -801,7 +657,6 @@ class Structure:
                 output_C4.flush()
                 #########   O5
 
-                #print "state", stan, "O5"
                 output_O5.write(str(stan+1))
                 lista = cmd.get_model(
                     "(%s and %s) and polymer and elem O and name O5' and (alt A or alt '')" % (self.objId, self.chain),
@@ -815,16 +670,13 @@ class Structure:
 
                 #########   canon
 
-                #print "state", stan, "canonical"
                 output_canon.write(str(stan+1))
                 model = cmd.get_model(
                     "(%s and %s) and polymer and (name C1' or ((name N1 and (resn G or resn A)) or (name N3 and (resn C or resn T or resn U)))) and (alt A or alt '')" % (self.objId, self.chain),
                     state=stan)#.get_coord_list()
-                #lista = [(a.resn, a.coord) for a in lista.atom]
                 residues = {}
                 for a in model.atom:
                     residues[a.resi] = residues.get(a.resi, []) + ([a.resn[-1],a.coord] if a.name != "C1'" else [])
-                # print residues
                 lista = sorted(residues.keys(),key=lambda x: int(x))
                 ll = len(lista)
                 for i in xrange(ll - 1, -1, -1):
@@ -843,7 +695,6 @@ class Structure:
                 output_canon.flush()
 
                 #########   heavy
-                #print "state", stan, "heavy"
                 output_heavy.write(str(stan+1))
                 model = cmd.get_model(
                     "(%s and %s) and polymer and (elem C or elem N or elem O or elem P) and (alt A or alt '')" % (
@@ -868,13 +719,7 @@ class Structure:
             for stan in xrange(1,self.num_states+1, step if step else 1):
                 if progress:
                     progress("State: {}/{}".format(stan,self.num_states))
-#                space = {'residues': []}
-#                cmd.iterate_state(1, "( %s and %s )" % (self.objId, self.chain),
-#                          "residues.append([name,resn,resv,alt,elem,q,ss,x,y,z])",
-#                          space=space)
-
                 #########   CA
-                #print "state",stan,"CA"
                 output_CA.write(str(stan+1))
                 lista = cmd.get_model(
                     "(%s and %s) and polymer and elem C and name CA and (alt A or alt '')" % (self.objId, self.chain), state=stan).get_coord_list()
@@ -884,29 +729,16 @@ class Structure:
                         output_CA.write("\t%08.3f" % RMSD(lista[i],lista[j]))
                 output_CA.write("\n")
                 output_CA.flush()
-
-
                 #########   CB
-                #print "state",stan,"CB"
                 output_CB.write(str(stan+1))
-                """lista = cmd.get_model(
-                    "(%s and %s) and polymer and elem C and name CB " % (self.objId, self.chain), state=stan).get_coord_list()
-                ll = len(lista)
-                for i in xrange(ll-1,-1,-1):
-                    for j in xrange(i-1,-1,-1):
-                        output_CB.write("\t%08.3f" % RMSD(lista[i],lista[j]))
-                print "Num of resids cb", ll"""
                 model = cmd.get_model(
                     "(%s and %s) and polymer and elem C and (name CA or name CB) and (alt A or alt '')" % (self.objId, self.chain),
                     state=stan)
                 residues = {}
                 for a in model.atom:
                     residues[a.resi] = residues.get(a.resi, []) + (a.coord if a.name == "CB" else [])
-                #print residues
                 lista = sorted(residues.keys(),key=lambda x: int(x))
                 ll = len(lista)
-                # print lista,ll
-                # print residues
                 for i in xrange(ll - 1, -1, -1):
                     for j in xrange(i - 1, -1, -1):
                         output_CB.write("\t%08.3f" % (RMSD(residues[lista[i]], residues[lista[j]]) if residues[lista[i]] and residues[lista[j]] else 1000.))
@@ -914,21 +746,17 @@ class Structure:
                 output_CB.write("\n")
                 output_CB.flush()
                 #########   heavy
-
-                #print "state", stan, "heavt"
                 output_heavy.write(str(stan+1))
                 model  = cmd.get_model(
                     "(%s and %s) and polymer and (elem C or elem N or elem O or elem S) " % (self.objId, self.chain), state=stan)
                 residues = {}
                 for a in model.atom:
                     residues[a.resi] = residues.get(a.resi, []) + [a.coord]
-
                 lista = sorted(residues.keys(),key=lambda x: int(x))
                 ll = len(lista)
                 for i in xrange(ll - 1, -1, -1):
                     for j in xrange(i - 1, -1, -1):
                         output_heavy.write("\t%08.3f" % minRMSD(residues[lista[i]], residues[lista[j]]))
-                #print "Num of resids heavy", ll
                 output_heavy.write("\n")
                 output_heavy.flush()
                 del model
@@ -942,16 +770,10 @@ class Structure:
 
     def makeMultiChainContactFile_rna(self, step=False,progress=False):
         name =  Structure.temp_path + "/_temp_" + self.objId + "_multichain_{}.map"
-        #print "Calculating multichain contact map"
         with open(name.format("C1"), "w", 1) as output_C1, open(name.format("C4"), "w", 1) as output_C4, \
                 open(name.format("O5"), "w", 1) as output_O5, open(name.format("heavy"), "w", 1) as output_heavy, \
                 open(name.format("canonical"), "w", 1) as output_canon:
             for stan in [1]: ### TODO potentially multichain multistate
-                #xrange(0, self.num_states, step if step else 1):
-                #                space = {'residues': []}
-                #                cmd.iterate_state(1, "( %s and %s )" % (self.objId, self.chain),
-                #                          "residues.append([name,resn,resv,alt,elem,q,ss,x,y,z])",
-                #                          space=space)
                 #########   CA
                 base_model = cmd.get_model(
                     "(%s and c. %s) and polymer and (elem C or elem N or elem O or elem P) and (alt A or alt '')" % (
@@ -960,8 +782,6 @@ class Structure:
                 base_residues = {}
                 for a in base_model:
                     base_residues[(int(a.resi),a.resn)] = base_residues.get((int(a.resi),a.resn), []) + [(a.name, a.coord)]
-                #print "".join([x[1] for x in sorted(base_residues)])
-                #print seq1("".join([x[1] for x in sorted(base_residues)]))
                 num_res = len(base_residues)
                 base_seq = Sekwencja("base", seq1("".join([x[1] for x in sorted(base_residues)])))
                 base_residues = list(zip(*sorted(base_residues.items(), key=lambda x: x[0][0]))[1])
@@ -993,9 +813,7 @@ class Structure:
                 try:
                     assert len(alignment[0])  == max((len(x.seq) for x in [base_seq]+other_seqs)) ### TODO: temporarily, all relative to base_model
                 except:
-                    print alignment[0],len(alignment[0])
-                    print [base_seq]+other_seqs
-                    raise IndexError
+                    raise ValueError("Error during alignment")
                 #### CA
                 output_C1.write(str(stan))
                 output_C4.write(str(stan))
@@ -1003,7 +821,6 @@ class Structure:
                 output_heavy.write(str(stan))
                 output_canon.write(str(stan))
                 ll = len(alignment[0])
-                #print stan,"lens",[len(x) for x in alignment],"and there are",len(alignment)
                 lc = len(alignment)
                 for i in xrange(ll-1,-1,-1):
                     if not alignment[base_idx][i]:
@@ -1043,18 +860,6 @@ class Structure:
                                 yc =[tmp[1] for tmp in alignment[y][j] if tmp[0] in ["N1","N3"]]
                                 dc = min(dc,minRMSD(xc, yc))
 
-                                """xb = [tmp for tmp in alignment[x][i] if tmp[0] == "CB"]
-                                if xb:
-                                    xb = xb[0][1]
-                                else:
-                                    continue
-                                yb = [tmp for tmp in alignment[y][j] if tmp[0] == "CB"]
-                                if yb:
-                                    yb = yb[0][1]
-                                else:
-                                    continue
-                                db = min(db, RMSD(xb, yb))"""
-                        #if min(da,db,dh) < 40: print i,j,da,db,dh
                         output_C1.write("\t%08.3f" % d1)
                         output_C4.write("\t%08.3f" % d4)
                         output_O5.write("\t%08.3f" % d5)
@@ -1070,21 +875,12 @@ class Structure:
                 output_O5.flush()
                 output_canon.flush()
                 del alignment
-        #print "doen calculating multichain map"
-
-
 
     def makeMultiChainContactFile_protein(self, step=False,progress=False):
         name =  Structure.temp_path + "/_temp_" + self.objId + "_multichain_{}.map"
-        #print "Calculating multichain contact map"
         with open(name.format("CA"), "w", 1) as output_CA, open(name.format("CB"), "w", 1) as output_CB, open(
                 name.format("heavy"), "w", 1) as output_heavy:
             for stan in [1]: ### TODO potentially multichain multistate
-                #xrange(0, self.num_states, step if step else 1):
-                #                space = {'residues': []}
-                #                cmd.iterate_state(1, "( %s and %s )" % (self.objId, self.chain),
-                #                          "residues.append([name,resn,resv,alt,elem,q,ss,x,y,z])",
-                #                          space=space)
                 #########   CA
                 base_model = cmd.get_model(
                     "(%s and c. %s) and polymer and (elem C or elem N or elem O or elem S) and (alt A or alt '')" % (
@@ -1093,8 +889,6 @@ class Structure:
                 base_residues = {}
                 for a in base_model:
                     base_residues[(int(a.resi),a.resn)] = base_residues.get((int(a.resi),a.resn), []) + [(a.name, a.coord)]
-                #print "".join([x[1] for x in sorted(base_residues)])
-                #print seq1("".join([x[1] for x in sorted(base_residues)]))
                 num_res = len(base_residues)
                 base_seq = Sekwencja("base", seq1("".join([x[1] for x in sorted(base_residues)])))
                 base_residues = list(zip(*sorted(base_residues.items(), key=lambda x: x[0][0]))[1])
@@ -1113,7 +907,6 @@ class Structure:
                     other_seqs.append(Sekwencja(len(other_seqs), seq1("".join([x[1] for x in sorted(residues)]))))
                 del residues
                 alignment,names = consensus([base_seq]+other_seqs)
-                #print alignment,names
                 base_idx = names.index("base")
                 names = [base_residues if x=="base" else other_models[x] for x in names]
                 alignment = [list(x)[::-1] for x in alignment]
@@ -1133,7 +926,6 @@ class Structure:
                 output_CB.write(str(stan))
                 output_heavy.write(str(stan))
                 ll = len(alignment[0])
-                #print stan,"lens",[len(x) for x in alignment],"and there are",len(alignment)
                 lc = len(alignment)
                 for i in xrange(ll-1,-1,-1):
                     if not alignment[base_idx][i]:
@@ -1170,7 +962,6 @@ class Structure:
                                 else:
                                     continue
                                 db = min(db, RMSD(xb, yb))
-                        #if min(da,db,dh) < 40: print i,j,da,db,dh
                         output_CA.write("\t%08.3f" % da)
                         output_CB.write("\t%08.3f" % db)
                         output_heavy.write("\t%08.3f" % dh)
@@ -1181,7 +972,6 @@ class Structure:
                 output_CB.flush()
                 output_heavy.flush()
                 del alignment
-        #print "doen calculating multichain map"
 
     def paintInserts(self):
         for res in self.residues:
@@ -1208,11 +998,6 @@ class Structure:
             for y in xrange(x, size):
                 xh =x
                 yh = y
-                #if not restricted:
-                #    xh = self.translations.unal_fasta2structseq[x]
-                #    yh = self.translations.unal_fasta2structseq[y]
-
-
                 if data[xh][yh] < vmin or type(data[xh][yh]) == np.ma.core.MaskedConstant:
                     pass
                 else:
@@ -1228,9 +1013,7 @@ class Structure:
                         ssy = self.translations.singleplot_native(y) #self.sequence_residues[y]
                         py = self.translations.singleplot_native(y)
                         px = self.translations.singleplot_native(x)
-                        #if not px or not py or px is None or py is None:
                         if px is None or py is None:
-                            #if x==0 : print data[x][y], x, y, ssx, ssy, px, py
                             continue
                     sc = 0.1
                     if (any and 0. < self.any_maps[Structure.flat_modes[Structure.mode]][ssx][ssy] < distance_intra) or \
@@ -1238,14 +1021,9 @@ class Structure:
                         sc = 1.
                     ##
                     if len(self.chains_to_keep)>1:
-                        #if 0. < self.multichain_min_rmsd(px, py, all_combos=all_combos) < distance_inter:
-                        #print self.interchain_maps[Structure.mode][ssx][ssy]
                         if 0. < self.interchain_maps[Structure.flat_modes[Structure.mode]][ssx][ssy] < distance_inter:
-                            #                        print "will rms",distance_intra,px,py,ssx,ssy
                             sc += 2.
                     out[x][y] = sc
-                    #if x==0:
-                    #    print out[x][y],x,y,ssx,ssy,px,py
         for x in xrange(size):
             for y in xrange(0, x):
                 #if y <= x:
@@ -1283,7 +1061,6 @@ class Structure:
         return out
 
     def makeSSarray(self,data,comparison=False,distance=8.,restricted=False, state=1, nonwc = False):
-        #print "COMPARISON",comparison,restricted
         if state != self.current_state:
             self.makeContactMap(state)
 
@@ -1308,9 +1085,7 @@ class Structure:
         TP = None
         if comparison:
             TP = 0
-            #print "COMPARISON"
             contacts = self.maps[Structure.flat_modes[Structure.mode]]
-            #print "contacts",contacts,len(contacts)
             for x in xrange(size):
                 for y in xrange(0,x):
                     ax = self.translations.singleplot_restrict_native(x)
@@ -1380,22 +1155,15 @@ class Structure:
         2. - TP inter - just contact"""
         if state != self.current_state:
             self.makeContactMap(state)
-        #print "Doing the OL array for", vmin
         return self.makeOLarray_restricted(data, distance=distance, vmin=vmin, nonwc=nonwc) #restricted by default?
-        if restricted:
-            return self.makeOLarray_restricted(data,distance=distance,vmin=vmin,nonwc=nonwc)
-        else:
-            return self.makeOLarray_unrestricted(data,distance=distance,vmin=vmin,nonwc=nonwc)
+
 
     def makeOLarray_restricted(self,data,distance=8.,vmin=0.,nonwc=False,state=1):
-        #print "Doing the OL array for", vmin
         size = len(self.residues)
         output = np.zeros((size, size))
         output.fill(-1.)
-        #print output
 
         contacts = self.maps[Structure.flat_modes[Structure.mode]]
-        # print "contacts",contacts,len(contacts)
         for x in xrange(size):
             for y in xrange(0, x):
                 ax = self.translations.singleplot_restrict_native(x)
@@ -1411,7 +1179,6 @@ class Structure:
                 else:
                     output[x][y] = -1.
                 output[y][x] = output[x][y]
-        #print output
         for x in xrange(size):
             for y in xrange(x,size):
                 ax = self.translations.singleplot_restrict(x)
@@ -1426,7 +1193,6 @@ class Structure:
                             output[y][x] = 0.1
 
         output = np.ma.masked_where(output <= 0., output)
-        #print output
         return output
 
     def makeOLarray_unrestricted(self,data,comparison=False,distance=8.,nonwc=False,vmin=0.):
@@ -1475,11 +1241,6 @@ class Structure:
         plt.figure(figure.number)
         assert plt.gcf() == figure
 
-#        print self.residues
-#        print [vars(i) for i in self.residues]
-#        print "###"
-#        print [vars(i) for i in self.residues if i.ss == '.']
-
         if restricted:
             beta = [idx+0.5 for idx, s in enumerate(self.residues) if s.ss == "S"]
             alpha = [idx+0.5 for idx, s in enumerate(self.residues) if s.ss == "H"]
@@ -1496,12 +1257,8 @@ class Structure:
         m = plt.subplot2grid((60, 60), (55, 5), colspan=54, rowspan=5, sharex=hmap)
         m.plot(range(size), [1 for x in xrange(size)], color='grey')
         m.plot(beta, [1] * len(beta), marker=ur'$\u21D2$', linestyle='None', color='blue')
-        #m.plot(beta, [1] * len(beta), 'y>')
         m.plot(alpha, [1] * len(alpha), marker=ur'$\u03B4$', linestyle='None',color='red')
-        #m.plot(alpha, [1] * len(alpha), marker=ur'$\u056E$', linestyle='None',color='red')
-        #m.plot(alpha, [1] * len(alpha), 'gv')
         m.plot(gap, [1] * len(gap), 'x', color='grey',linestyle='None')
-        #m.plot(gap, [1] * len(gap), 'x', color='grey')
         m.set_ylim(0.9999, 1.000004)
         m.set_xlim([0, size])
         m.axis('off')
@@ -1509,7 +1266,6 @@ class Structure:
         plt.setp(m.get_xticklabels(), visible=True)
         plt.setp(m.get_yticklabels(), visible=False)
         plt.subplots_adjust(hspace=0, wspace=0)
-        #plt.subplots_adjust(left=0.03, bottom=0.03, right=1, top=1, wspace=0, hspace=0)
         ##LEFT TO XAXIS ####
         n = plt.subplot2grid((60, 60), (1, 0), colspan=5, rowspan=54, sharey=hmap)
         n.plot([1 for x in xrange(size)], range(size), color='grey')
@@ -1521,9 +1277,7 @@ class Structure:
         n.axis('off')
         plt.setp(n.get_yticklabels(), visible=True)
         plt.setp(n.get_xticklabels(), visible=False)
-        #plt.subplots_adjust(hspace=0, wspace=0)
         hmap.tick_params(axis='y')
-        #plt.subplots_adjust(left=0.3, bottom=0.3, right=1, top=1, wspace=0.01, hspace=0.01)
         plt.subplots_adjust(left=0.07, bottom=0.05, right=0.97, top=0.97, wspace=0.01, hspace=0.01)
         return [m, n]
 
@@ -1572,7 +1326,6 @@ class DoubleStructure(Structure):
                 c2+=1
 
     def read_in_map_oneliner_arr(self,line):
-        ## line = "num_line dist(last_idx,last_idx-1) . . . dist(1,0)"
         size1 = len(self.struct_1.translations.pdb2structseq)
         size2 = len(self.struct_2.translations.pdb2structseq)
         #size  ### TODO probably better that structseq2pdb
@@ -1588,21 +1341,13 @@ class DoubleStructure(Structure):
     def makeContactMap(self, state, mchain=False):
         self.current_state = state
         name = Structure.temp_path + "/_temp_" + self.objId + "_{}.map"
-        #if not self.maps.has_key(Structure.flat_modes[Structure.mode]):
-        #    self.makeMultiStateContactFile()
         with open(name.format(Structure.flat_modes[Structure.mode])) as mapfile:
             for x, line in enumerate(mapfile):
-                #print "Reading in contact map from file: ","state",state,"multichain :",mchain
                 if x+1 == state:
-                #    print "Found state",x+1
                     self.maps[Structure.flat_modes[Structure.mode]] = self.read_in_map_oneliner_arr(line)
                 elif x >= state:
                     break
 
-
-
-    #def swap_axes(self):
-    #    self.struct_1, self.struct_2 = self.struct_2,self.struct_1
 
     def makeMultiStateContactFile_rna(self, step=False, progress=False):
         name = Structure.temp_path + "/_temp_" + self.objId + "_{}.map"
@@ -1618,7 +1363,6 @@ class DoubleStructure(Structure):
                     #                          space=space)
 
                 #########   C1
-                #print "state", stan, "C1"
                 output_C1.write(str(stan+1))
                 lista1 = cmd.get_model(
                     "(%s and %s) and polymer and elem C and name C1' and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain),
@@ -1635,7 +1379,6 @@ class DoubleStructure(Structure):
                 output_C1.flush()
 
                 #########   C4
-                #print "state", stan, "C4"
                 output_C4.write(str(stan+1))
                 lista1 = cmd.get_model(
                     "(%s and %s) and polymer and elem C and name C4' and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain),
@@ -1651,8 +1394,6 @@ class DoubleStructure(Structure):
                 output_C4.write("\n")
                 output_C4.flush()
                 #########   O5
-
-                #print "state", stan, "O5"
                 output_O5.write(str(stan+1))
                 lista1 = cmd.get_model(
                     "(%s and %s) and polymer and elem O and name O5' and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain),
@@ -1669,28 +1410,22 @@ class DoubleStructure(Structure):
                 output_O5.flush()
 
                 #########   canon
-
-                #print "state", stan, "canonical"
                 output_canon.write(str(stan+1))
                 model1 = cmd.get_model(
                     "(%s and %s) and polymer and (name C1' or ((name N1 and (resn G or resn A)) or (name N3 and (resn C or resn T or resn U)))) and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain),
                     state=stan)#.get_coord_list()
-                #lista = [(a.resn, a.coord) for a in lista.atom]
                 residues1 = {}
                 for a in model1.atom:
                     residues1[a.resi] = residues1.get(a.resi, []) + ([a.resn[-1],a.coord] if a.name != "C1'" else [])
-                # print residues
                 lista1 = sorted(residues1.keys(),key=lambda x: int(x))
                 ll1 = len(lista1)
                 model2 = cmd.get_model(
                     "(%s and %s) and polymer and (name C1' or ((name N1 and (resn G or resn A)) or (name N3 and (resn C or resn T or resn U)))) and (alt A or alt '')" % (
                     self.struct_2.objId, self.struct_2.chain),
                     state=stan)  # .get_coord_list()
-                # lista = [(a.resn, a.coord) for a in lista.atom]
                 residues2 = {}
                 for a in model1.atom:
                     residues2[a.resi] = residues2.get(a.resi, []) + ([a.resn[-1], a.coord] if a.name != "C1'" else [])
-                # print residues
                 lista2 = sorted(residues2.keys(), key=lambda x: int(x))
                 ll2 = len(lista2)
                 for i in xrange(ll1 - 1, -1, -1):
@@ -1706,7 +1441,6 @@ class DoubleStructure(Structure):
                 output_canon.flush()
 
                 #########   heavy
-                #print "state", stan, "heavy"
                 output_heavy.write(str(stan+1))
                 model1 = cmd.get_model(
                     "(%s and %s) and polymer and (elem C or elem N or elem O or elem P) and (alt A or alt '')" % (
@@ -1738,13 +1472,8 @@ class DoubleStructure(Structure):
             for stan in xrange(1,self.num_states+1, step if step else 1):
                 if progress:
                     progress("State: {}/{}".format(stan,self.num_states))
-#                space = {'residues': []}
-#                cmd.iterate_state(1, "( %s and %s )" % (self.objId, self.chain),
-#                          "residues.append([name,resn,resv,alt,elem,q,ss,x,y,z])",
-#                          space=space)
 
                 #########   CA
-                #print "state",stan,"CA"
                 output_CA.write(str(stan+1))
                 lista1 = cmd.get_model(
                     "(%s and %s) and polymer and elem C and name CA and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain), state=stan).get_coord_list()
@@ -1761,7 +1490,6 @@ class DoubleStructure(Structure):
 
 
                 #########   CB
-                #print "state",stan,"CB"
                 output_CB.write(str(stan+1))
                 model1 = cmd.get_model(
                     "(%s and %s) and polymer and elem C and (name CA or name CB) and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain),
@@ -1769,7 +1497,6 @@ class DoubleStructure(Structure):
                 residues1 = {}
                 for a in model1.atom:
                     residues1[a.resi] = residues1.get(a.resi, []) + (a.coord if a.name == "CB" else [])
-                #print residues
                 lista1 = sorted(residues1.keys(),key=lambda x: int(x))
                 ll1 = len(lista1)
                 model2 = cmd.get_model(
@@ -1778,7 +1505,6 @@ class DoubleStructure(Structure):
                 residues2 = {}
                 for a in model1.atom:
                     residues2[a.resi] = residues2.get(a.resi, []) + (a.coord if a.name == "CB" else [])
-                #print residues
                 lista2 = sorted(residues2.keys(),key=lambda x: int(x))
                 ll2 = len(lista2)
                 for i in xrange(ll1 - 1, -1, -1):
@@ -1788,8 +1514,6 @@ class DoubleStructure(Structure):
                 output_CB.write("\n")
                 output_CB.flush()
                 #########   heavy
-
-                #print "state", stan, "heavt"
                 output_heavy.write(str(stan+1))
                 model1  = cmd.get_model(
                     "(%s and %s) and polymer and (elem C or elem N or elem O or elem S) and (alt A or alt '')" % (self.struct_1.objId, self.struct_1.chain), state=stan)
@@ -1810,7 +1534,6 @@ class DoubleStructure(Structure):
                 for i in xrange(ll1 - 1, -1, -1):
                     for j in xrange(ll2 - 1, -1, -1):
                         output_heavy.write("\t%08.3f" % minRMSD(residues1[lista1[i]], residues2[lista2[j]]))
-                #print "Num of resids heavy", ll
                 output_heavy.write("\n")
                 output_heavy.flush()
 
@@ -1830,14 +1553,11 @@ class DoubleStructure(Structure):
         return output
 
     def makeOLarray_restricted(self,data,distance=8.,vmin=0.,nonwc=False,state=1):
-        #print "Doing the OL array for", vmin
         size1 = len(self.struct_1.residues)
         size2 = len(self.struct_2.residues)
         output = np.zeros((size1, size2))
         output.fill(-1.)
-        #print output
         contacts = self.maps[Structure.flat_modes[Structure.mode]]
-        # print "contacts",contacts,len(contacts)
         for x in xrange(size1):
             for y in xrange(size2):
                 ax = self.struct_1.translations.singleplot_restrict_native(x)
@@ -1852,8 +1572,6 @@ class DoubleStructure(Structure):
                         output[x][y] = 2 if contacts[x][y] and (contacts[x][y] < distance) else -1.
                 else:
                     output[x][y] = -1.
-
-        #print output
         for x in xrange(size1):
             for y in xrange(size2):
                 ax = self.struct_1.translations.singleplot_restrict(x)
@@ -1866,7 +1584,6 @@ class DoubleStructure(Structure):
                             output[x][y] = 0.1
 
         output = np.ma.masked_where(output <= 0., output)
-        #print output
         return output
 
     def plotSS(self, figure, hmap, restricted=True):
@@ -1877,13 +1594,6 @@ class DoubleStructure(Structure):
         plt.figure(figure.number)
         assert plt.gcf() == figure
 
-        #        print self.residues
-        #        print [vars(i) for i in self.residues]
-        #        print "###"
-        #        print [vars(i) for i in self.residues if i.ss == '.']
-
-
-        print "plottingsS"
         ##BELOW XAXIS ####
         beta = [idx + 0.5 for idx, s in enumerate(self.struct_1.residues) if s.ss == "S"]
         alpha = [idx + 0.5 for idx, s in enumerate(self.struct_1.residues) if s.ss == "H"]
@@ -1891,14 +1601,8 @@ class DoubleStructure(Structure):
         m = plt.subplot2grid((60, 60), (55, 5), colspan=54, rowspan=5, sharex=hmap)
         m.plot(range(size1), [1 for x in xrange(size1)], color='grey')
         m.plot(beta, [1] * len(beta), marker=ur'$\u03B2$', linestyle='None', color='blue')
-        #m.plot(beta, [1] * len(beta), marker=ur'$\u21D2$', linestyle='None', color='blue')
-        # m.plot(beta, [1] * len(beta), 'y>')
         m.plot(alpha, [1] * len(alpha), marker=ur'$\u03B1$', linestyle='None', color='red')
-        #m.plot(alpha, [1] * len(alpha), marker=ur'$\u03B4$', linestyle='None', color='red')
-        # m.plot(alpha, [1] * len(alpha), marker=ur'$\u056E$', linestyle='None',color='red')
-        # m.plot(alpha, [1] * len(alpha), 'gv')
         m.plot(gap, [1] * len(gap), 'x', color='grey', linestyle='None')
-        # m.plot(gap, [1] * len(gap), 'x', color='grey')
         m.set_ylim(0.9999, 1.000004)
         m.set_xlim([0, size1])
         m.axis('off')
@@ -1906,7 +1610,6 @@ class DoubleStructure(Structure):
         plt.setp(m.get_xticklabels(), visible=True)
         plt.setp(m.get_yticklabels(), visible=False)
         plt.subplots_adjust(hspace=0, wspace=0)
-        # plt.subplots_adjust(left=0.03, bottom=0.03, right=1, top=1, wspace=0, hspace=0)
         ##LEFT TO XAXIS ####
         beta = [idx + 0.5 for idx, s in enumerate(self.struct_2.residues) if s.ss == "S"]
         alpha = [idx + 0.5 for idx, s in enumerate(self.struct_2.residues) if s.ss == "H"]
@@ -1914,8 +1617,6 @@ class DoubleStructure(Structure):
         n = plt.subplot2grid((60, 60), (1, 0), colspan=5, rowspan=54, sharey=hmap)
         n.plot([1 for x in xrange(size2)], range(size2), color='grey')
         n.plot([1] * len(beta), beta, linestyle='None', marker=ur'$\u03B2$', color='blue')  # E017 #221D
-        #n.plot([1] * len(beta), beta, linestyle='None', marker=ur'$\u21D1$', color='blue')  # E017 #221D
-        #n.plot([1] * len(alpha), alpha, linestyle='None', marker=ur'$\u221D$', color='red')  # 10454
         n.plot([1] * len(alpha), alpha, linestyle='None', marker=ur'$\u03B1$', color='red')  # 10454
         n.plot([1] * len(gap), gap, marker='x', linestyle='None', color='grey')
         n.set_xlim(0.9999, 1.000004)
@@ -1923,9 +1624,7 @@ class DoubleStructure(Structure):
         n.axis('off')
         plt.setp(n.get_yticklabels(), visible=True)
         plt.setp(n.get_xticklabels(), visible=False)
-        # plt.subplots_adjust(hspace=0, wspace=0)
         hmap.tick_params(axis='y')
-        # plt.subplots_adjust(left=0.3, bottom=0.3, right=1, top=1, wspace=0.01, hspace=0.01)
         plt.subplots_adjust(left=0.07, bottom=0.05, right=0.97, top=0.97, wspace=0.01, hspace=0.01)
         return [m, n]
 
