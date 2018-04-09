@@ -16,8 +16,8 @@ gappen_prot = -10
 gapcont_prot = -0.5
 # print matrix
 for k, i in matrix_prot.items():
-    matrix_prot[k[1], k[0]] = k[0]==k[1]#i
-    matrix_prot[k[0], k[1]] = k[0]==k[1]#i
+    matrix_prot[k[1], k[0]] = 1 if k[0]==k[1] else -1#i
+    matrix_prot[k[0], k[1]] = 1 if k[0]==k[1] else -1#i
     matrix_prot[k[0], "-"] = gappen_prot
     matrix_prot[k[1], "-"] = gappen_prot
     matrix_prot["-", k[0]] = gappen_prot
@@ -367,6 +367,9 @@ def pairwise(ss1, ss2, save=False):
             else:
                 path[i][j] = L
 
+    #from test_heatmap import plot_matrix
+    #plot_matrix(scores)
+
     res1 = ""
     res2 = ""
     i = s1l
@@ -376,8 +379,10 @@ def pairwise(ss1, ss2, save=False):
     sj = s2l
     ei = 0
     ej = 0
-
+    #for row in scores:
+    #    print row
     #################### LGA #######################
+    #print "koniec to",i,j
 
     prev = (scores[i][j],i,j)
     trash1,trash2= "",""
@@ -391,12 +396,15 @@ def pairwise(ss1, ss2, save=False):
         elif path[i][j] == U:
             trash1+= s1[i - 1]
             i -= 1
-
         else:
             trash2+= s2[j - 1]
             j -= 1
+
+    #print "cofam do",i,j
+
     trash1 = trash1[:-1]
     trash2 = trash2[:-1]
+    #print trash1, trash2
     i,j = prev[1:]
     sg = [i,j,0]#starts_growing
     while path[i][j] != 42:
@@ -417,22 +425,32 @@ def pairwise(ss1, ss2, save=False):
         sg[2]+=1
         if scores[i][j]<scores[sg[0]][sg[1]]:
             sg = [i,j,0]
+    res1 = res1[::-1]
+    res2 = res2[::-1]
+
+    #print res1
+    #print res2
+    #print sg[2],"sg2"
     b1,b2 = '',''
     if sg[2]:
         b1,res1 = res1[:sg[2]],res1[sg[2]:]
         b2,res2 = res2[:sg[2]],res2[sg[2]:]
-        b1, b2 = zip(*[i for i in zip(b1[::-1], b2[::-1]) if i[0] != "-" or i[1] != "-"])
-        b1="".join(b1)
-        b2="".join(b2)
-    res1,res2 = map(list,zip(*[i for i in zip(res1[::-1],res2[::-1]) if i[0]!="-" or i[1]!="-"]))
+        b1, b2 = zip(*[i for i in zip(b1, b2) if i[0] != "-" or i[1] != "-"])
+        b1="".join(b1).replace("-","")
+        b2="".join(b2).replace("-","")
+    #print res1
+    #print res2
+    #print b1
+    #print b2
+    res1,res2 = map(list,zip(*[i for i in zip(res1,res2) if i[0]!="-" or i[1]!="-"]))
     trash1 = list("".join([x for x in trash1[::-1] if x!="-"]))
     trash2 = list("".join([x for x in trash2[::-1] if x!="-"]))
     while trash1 and trash2 and trash1[0] == trash2[0]:
         res1.append(trash1.pop(0))
         res2.append(trash2.pop(0))
 
-    res1 = ("-"*sg[2]) + b1 + "".join(res1) + "".join(trash1) + ("-"*len(trash2))
-    res2 = b2 + ("-"*sg[2]) + "".join(res2) + ("-"*len(trash1))+"".join(trash2)
+    res1 = ("-"*len(b2)) + b1 + "".join(res1) + "".join(trash1) + ("-"*len(trash2))
+    res2 = b2 + ("-"*len(b1)) + "".join(res2) + ("-"*len(trash1))+"".join(trash2)
     return (res1,res2), scores[s1l][s2l]
 
 
@@ -492,7 +510,20 @@ def test(seqlist):
     print compare(cons, c)
 
 if __name__ == "__main__":
-    print consensus([sekwencja(0,"MWIGVISLFPEMFKAITEFGVTGRAVKHNLLKVECWNPRDFTFDKHKTVDDRPYGGGPGMLMMVQPLRDAIHTAKAAAGEGAKVIYLSPQGRKLDQGGVTELAQNQKLILVCGRYEGIDERLIQTEIDEEWSIGDYVLTGGELPAMTLIDAVARFIPGVLGLLDCPHYTRPEVLEGLTVPPVLMSHHEEIRKWRLKQSLQRTWLR"),
-        sekwencja(1,"MWIGVISLFPEMFKAITEFGVTGRAVKHNLLKVECWNPRDFTFDKHKTVDDRPYGGGPGMLMMVQPLRDAIHTAKAAAGEGAKVIYLSPQGRKLDQGGVTELAQNQKLILVCGRYEGIDERLIQTEIDEEWSIGDYVLTGGELPAMTLIDAVARFIPGVLGKQASAEEDSFADGLLDCPHYTRPEVLEGLTVPPVLMSGHHEEIRKWRLKQSLQRTWLRRPELLEGLALTDEQRKLLKEAQAE")])
+    seqlist = ["SYSLCTAAFTFTKIPAETLHGTVTVEVQYAGTDGPCKVPAQMAVDMQTLTPVGRLITANPVITTENSKMMLELDPPFGDSYIVIGVGEKKITHHWHR", \
+"AKFACSKKMTGKSIQPENLEYRIMLSVHGSQHSGMIVNDTGHETDENRAKVEITPNSPRAEATLGGFGSLGLDCEPRTGLDFSDLYYLTMNNKHWLVHKEWFHDIPLPWHAGADTGTPHWNNKEALVEFKDAHAKRQTVVVLGSQEGAVHTALAGALEAEMDGAKGRLSSGHLKCRLKMDKLRLKGVSYSLCTAAFTFTKIPAETLHGTVTVEVQYAGTDGPCKVPAQMAVDMQTLTPVGRLITANPVITESTENSKMMLELDPPFGDSYIVIGVGEKKITHHWHIRCIGVSNRDFVEGMSGGTWVDVVLEHGGCVTVMAQDKPTVDIELVTTTVSNMAEVRSYCYEASISDMASDSRCPTQGEAYLDKQSDTQYVCKRTLVDRSGSTIGKAFEATVRGAKRMAVLGDTAWDFGSVGGRGWGNGCGLFGKGSLVTCALNSLGKGIHQIFGAAFKSLFGGMSWFSQILIGTLLMWLGLNTKNGSISLMCLALGGVLIFLSTA"]
+    with open('/tmp/notAligned.fasta', 'w', 0) as out:
+        for i, s in enumerate(seqlist):
+            out.write(">%d\n%s\n" % (i, s))
+    call(['clustalo', '--force', '--auto', '-i', '/tmp/notAligned.fasta', '-o', '/tmp/aligned.fasta'])
+    with open('/tmp/aligned.fasta') as input:
+        c = ["".join(x.split("\n")[1:]) for x in input.read().split(">")[1:]]
+    print c
+    print pairwise_prot("SYSLCTAAFTFTKIPAETLHGTVTVEVQYAGTDGPCKVPAQMAVDMQTLTPVGRLITANPVITTENSKMMLELDPPFGDSYIVIGVGEKKITHHWHR", \
+"AKFACSKKMTGKSIQPENLEYRIMLSVHGSQHSGMIVNDTGHETDENRAKVEITPNSPRAEATLGGFGSLGLDCEPRTGLDFSDLYYLTMNNKHWLVHKEWFHDIPLPWHAGADTGTPHWNNKEALVEFKDAHAKRQTVVVLGSQEGAVHTALAGALEAEMDGAKGRLSSGHLKCRLKMDKLRLKGVSYSLCTAAFTFTKIPAETLHGTVTVEVQYAGTDGPCKVPAQMAVDMQTLTPVGRLITANPVITESTENSKMMLELDPPFGDSYIVIGVGEKKITHHWHIRCIGVSNRDFVEGMSGGTWVDVVLEHGGCVTVMAQDKPTVDIELVTTTVSNMAEVRSYCYEASISDMASDSRCPTQGEAYLDKQSDTQYVCKRTLVDRSGSTIGKAFEATVRGAKRMAVLGDTAWDFGSVGGRGWGNGCGLFGKGSLVTCALNSLGKGIHQIFGAAFKSLFGGMSWFSQILIGTLLMWLGLNTKNGSISLMCLALGGVLIFLSTA")
+    exit()
+
+    print consensus([sekwencja(0,"SYSLCTAAFTFTKIPAETLHGTVTVEVQYAGTDGPCKVPAQMAVDMQTLTPVGRLITANPVITTENSKMMLELDPPFGDSYIVIGVGEKKITHHWHR"),
+        sekwencja(1,"AKFACSKKMTGKSIQPENLEYRIMLSVHGSQHSGMIVNDTGHETDENRAKVEITPNSPRAEATLGGFGSLGLDCEPRTGLDFSDLYYLTMNNKHWLVHKEWFHDIPLPWHAGADTGTPHWNNKEALVEFKDAHAKRQTVVVLGSQEGAVHTALAGALEAEMDGAKGRLSSGHLKCRLKMDKLRLKGVSYSLCTAAFTFTKIPAETLHGTVTVEVQYAGTDGPCKVPAQMAVDMQTLTPVGRLITANPVITESTENSKMMLELDPPFGDSYIVIGVGEKKITHHWHIRCIGVSNRDFVEGMSGGTWVDVVLEHGGCVTVMAQDKPTVDIELVTTTVSNMAEVRSYCYEASISDMASDSRCPTQGEAYLDKQSDTQYVCKRTLVDRSGSTIGKAFEATVRGAKRMAVLGDTAWDFGSVGGRGWGNGCGLFGKGSLVTCALNSLGKGIHQIFGAAFKSLFGGMSWFSQILIGTLLMWLGLNTKNGSISLMCLALGGVLIFLSTA")])
     exit()
 

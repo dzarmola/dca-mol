@@ -132,15 +132,18 @@ def mapping(align_sequence,str_sequence, seqName, objId,double=False):
     blaseq.set(aseq)
     blastr = Tk.StringVar()#astr
     types = ('fasta','.pdb') if not double else ('first structure','second structure')
-    header = """There is a mismatch in the sequence for {} ({}).\n
-            Aligned sequences:\n
+    header = """Aligned sequences:\n
             From {}: \n{}\n
              From {}: \n{}
-            """.format(seqName, objId, types[0], aseq, types[1], astr)
+            """.format(types[0], aseq, types[1], astr)
+    if mismatch:
+        header = "There is a mismatch in the sequence for {} ({}).\n".format(seqName, objId) + header
     if double:
         header = "We propose following alignment between your protein chains:\n>{}:{}\n>{}:{}".format(seqName,aseq,objId,astr)
+    if not mismatch and not double:
+        header = "Our suggested alignment for {} ({})".format(seqName, objId) + header
     blastr.set(astr)
-    if mismatch or double:
+    if mismatch or double or True:
         mmwindow = Tk.Toplevel()
         e = Tk.Text(mmwindow, width=80,font=("Monospace" if platform_system()!="Windows" else "Consolas"))
         e.insert(Tk.END, header)
