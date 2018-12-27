@@ -3109,20 +3109,22 @@ def __init__(self):
 
             print "Will now read DI scores"
             size = 0
+            correct_line = re.compile("^(\d+)[\t ]+(\d+)[\t ]+([\de\.-]+)([\t \de\.-]*)\s$")
+            correct_indices = re.compile("^(\d+)[\t ]+(\d+)[\t ]+[\de\.-]+\s[\t \de\.-]*$")
             with open(self.discores.get()) as input:
                 minimal_idx = None
                 max_idx = None
                 for line in input.readlines():
-                    line = line.split()
-                    if not line: continue
-                    if minimal_idx is not None:
-                        minimal_idx = min(minimal_idx, int(line[1]), int(line[0]))
-                    else:
-                        minimal_idx = min(int(line[1]), int(line[0]))
-                    if max_idx is not None:
-                        max_idx = max(max_idx, int(line[1]), int(line[0]))
-                    else:
-                        max_idx = max(int(line[1]), int(line[0]))
+                    if correct_line.match(line):
+                        _first,_second = map(int,correct_indices.findall(line)[0])
+                        if minimal_idx is not None:
+                            minimal_idx = min(minimal_idx, _first,_second)
+                        else:
+                            minimal_idx = min(_first,_second)
+                        if max_idx is not None:
+                            max_idx = max(max_idx, _first,_second)
+                        else:
+                            max_idx = max(_first,_second)
 
             self.data = [[0 for x in xrange(max_idx + 2)] for y in xrange(max_idx + 2)]
             skip = 0
@@ -3137,18 +3139,19 @@ def __init__(self):
                 di_loc = Tk.IntVar()
                 di_loc.set(2)
                 for line in input.readlines():
-                    if check:
-                        check = False
-                        if len(line.split())>3:
-                            loc = tkSimpleDialog.askinteger("Input","In which column ({}-{}) are the DI scores?\nExample line from your file:\n\n{}".format(1,len(line.split()),line), \
-                                                             parent=self.root,minvalue=1,maxvalue=len(line.split()))
-                            if loc is not None:
-                                di_loc.set(loc-1)
-                            else:
-                                di_loc.set(len(line.split())-1)
-                    line = line.split()
-                    self.data[int(line[0])-skip][int(line[1])-skip] = float(line[di_loc.get()])  # /scale
-                    self.data[int(line[1])-skip][int(line[0])-skip] = float(line[di_loc.get()])
+                    if correct_line.match(line):
+                        if check:
+                            check = False
+                            if correct_line.findall(line)[0][3]:
+                                loc = tkSimpleDialog.askinteger("Input","In which column ({}-{}) are the DI scores?\nExample line from your file:\n\n{}".format(1,len(line.split()),line), \
+                                                                 parent=self.root,minvalue=1,maxvalue=len(line.split()))
+                                if loc is not None:
+                                    di_loc.set(loc-1)
+                                else:
+                                    di_loc.set(len(line.split())-1)
+                        line = line.split()
+                        self.data[int(line[0])-skip][int(line[1])-skip] = float(line[di_loc.get()])  # /scale
+                        self.data[int(line[1])-skip][int(line[0])-skip] = float(line[di_loc.get()])
 
             self.UPPER_DATA_BOUND.set(max([max(i) for i in self.data]))
             self.DATA_BACKUP = np.array(self.data)
